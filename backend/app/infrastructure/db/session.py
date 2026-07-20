@@ -45,11 +45,23 @@ async_session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
 
 
 async def get_async_session() -> AsyncIterator[AsyncSession]:
-    """FastAPI dependency. Yields a session, rolls back on exception."""
+    """FastAPI dependency. Yields a session, rolls back only on unexpected
+    errors. Business exceptions (AppError) are treated as normal flow: the
+    session is committed so partial writes (e.g. failed login counters) are
+    persisted. Unexpected exceptions trigger a rollback.
+    """
+    from app.core.exceptions import AppError
+
     async with async_session_factory() as session:
         try:
             yield session
             await session.commit()
+        except AppError:
+            # Business rule violation — persist any audit/counter writes done
+            # before the error was raised, then let the exception propagate to
+            # the exception handler.
+            await session.commit()
+            raise
         except Exception:
             await session.rollback()
             raise
