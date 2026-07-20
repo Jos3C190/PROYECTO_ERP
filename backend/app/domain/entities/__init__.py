@@ -1,5 +1,5 @@
-"""Domain entities (placeholder for Phase 1+).
+"""Domain entities (re-export barrel)."""
+from app.domain.entities.auth import RefreshToken
+from app.domain.entities.user import User, UserStatus
 
-Phase 0 ships no entities. The directory exists so the architecture is in place
-and later phases drop files here without restructuring.
-"""
+__all__ = ["User", "UserStatus", "RefreshToken"]

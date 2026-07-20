@@ -1,6 +1,11 @@
-"""Domain port interfaces (abstract repositories / services).
+"""Port interfaces (re-export barrel)."""
+from app.domain.ports.refresh_token_repository import RefreshTokenRepository
+from app.domain.ports.token_service import AccessTokenPayload, TokenService
+from app.domain.ports.user_repository import UserRepository
 
-Each port is a `Protocol` or `ABC` declared in the domain layer and implemented
-in `app.infrastructure.repositories`. Use cases depend on these ports, never on
-concrete SQLAlchemy repositories.
-"""
+__all__ = [
+    "UserRepository",
+    "RefreshTokenRepository",
+    "TokenService",
+    "AccessTokenPayload",
+]
