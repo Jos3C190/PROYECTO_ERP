@@ -1,18 +1,20 @@
 /**
- * Centralised API client. Phase 0: thin wrapper around fetch with typed responses
- * and a single base URL. Auth/refresh interceptor and TanStack Query wiring
- * arrive in Phase 1.
+ * Centralised API client with:
+ * - Authorization header injection from the session store.
+ * - Transparent refresh-token rotation on 401 (calls /auth/refresh, retries).
+ * - Uniform error typing (HttpError with code + message + status).
+ *
+ * The refresh token is sent as an httpOnly cookie automatically by the browser
+ * for same-origin requests. For cross-origin (dev), the backend's CORS allows
+ * credentials and the cookie is set on the /api/v1/auth path.
  */
 import { browser } from '$app/environment';
 import { PUBLIC_API_URL } from '$env/static/public';
+import { session } from '$lib/stores/session.svelte';
 
 export const API_BASE_URL = PUBLIC_API_URL ?? 'http://localhost:8000';
-
-export type ApiError = {
-  code: string;
-  message: string;
-  status: number;
-};
+const API_PREFIX = '/api/v1';
+const REFRESH_ENDPOINT = `${API_PREFIX}/auth/refresh`;
 
 export class HttpError extends Error {
   readonly code: string;
@@ -39,20 +41,72 @@ async function parseError(res: Response): Promise<HttpError> {
   return new HttpError(code, message, res.status);
 }
 
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+let refreshing: Promise<boolean> | null = null;
+
+async function tryRefresh(): Promise<boolean> {
+  if (!browser) return false;
+  if (refreshing) return refreshing;
+  refreshing = (async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}${REFRESH_ENDPOINT}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { Accept: 'application/json' }
+      });
+      if (!res.ok) return false;
+      const body = (await res.json()) as { access_token: string };
+      session.setToken(body.access_token);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      refreshing = null;
+    }
+  })();
+  return refreshing;
+}
+
+export interface ApiFetchOptions extends RequestInit {
+  /** Skip auth header (e.g. for login). */
+  noAuth?: boolean;
+  /** Skip the 401-refresh-retry flow (e.g. for the refresh endpoint itself). */
+  noRefresh?: boolean;
+}
+
+export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   if (!browser && !path.startsWith('http')) {
-    // Server-side calls in SvelteKit should use absolute URLs.
     throw new Error('apiFetch must receive an absolute URL when called on the server.');
   }
-  const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      Accept: 'application/json',
-      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(init.headers ?? {})
+  const url = path.startsWith('http') ? path : `${API_BASE_URL}${API_PREFIX}${path}`;
+  const { noAuth, noRefresh, headers: initHeaders, ...rest } = options;
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    ...(rest.body ? { 'Content-Type': 'application/json' } : {}),
+    ...((initHeaders ?? {}) as Record<string, string>)
+  };
+  if (!noAuth && browser && session.token) {
+    headers['Authorization'] = `Bearer ${session.token}`;
+  }
+
+  const res = await fetch(url, { ...rest, headers, credentials: 'include' });
+
+  // 401 -> try refresh -> retry once
+  if (res.status === 401 && browser && !noRefresh && !noAuth) {
+    const ok = await tryRefresh();
+    if (ok && session.token) {
+      headers['Authorization'] = `Bearer ${session.token}`;
+      const retryRes = await fetch(url, { ...rest, headers, credentials: 'include' });
+      if (!retryRes.ok) {
+        if (retryRes.status === 401) session.clear();
+        throw await parseError(retryRes);
+      }
+      if (retryRes.status === 204) return undefined as T;
+      return (await retryRes.json()) as T;
     }
-  });
+    session.clear();
+  }
+
   if (!res.ok) {
     throw await parseError(res);
   }
@@ -70,9 +124,48 @@ export interface HealthReport {
   components: { name: string; status: string; detail?: string }[];
 }
 
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token: string;
+}
+
+export interface UserOut {
+  id: string;
+  username: string;
+  email: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  mfa_enabled: boolean;
+  last_login_at: string | null;
+  failed_login_attempts: number;
+  locked_until: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export const api = {
+  auth: {
+    login: (login: string, password: string) =>
+      apiFetch<TokenResponse>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ login, password }),
+        noAuth: true
+      }),
+    refresh: () =>
+      apiFetch<TokenResponse>('/auth/refresh', {
+        method: 'POST',
+        noAuth: true,
+        noRefresh: true
+      }),
+    logout: () =>
+      apiFetch<{ message: string; code: string }>('/auth/logout', {
+        method: 'POST'
+      }),
+    me: () => apiFetch<UserOut>('/auth/me')
+  },
   health: {
-    live: () => apiFetch<HealthReport>('/health/live'),
-    ready: () => apiFetch<HealthReport>('/health/ready')
+    live: () => apiFetch<HealthReport>('/health/live', { noAuth: true, noRefresh: true })
   }
 };
