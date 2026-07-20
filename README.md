@@ -50,8 +50,22 @@ When it finishes you should have:
 | ReDoc docs        | http://localhost:8000/redoc |
 | Postgres          | localhost:5432 |
 
-> **Phase 0 has no seed user yet.** Phase 1 will introduce the
-> `SUPER_ADMIN` seed user with documented credentials in this README.
+### Seed credentials (Phase 1)
+
+After `make seed`, a SUPER_ADMIN user is created with:
+
+| Field | Value |
+|-------|-------|
+| Username | `superadmin` |
+| Email | `superadmin@erp-system.dev` |
+| Password | `Cambio!Seguro2026` |
+
+> **Rotate this password immediately in any non-local environment.**
+> 25 additional demo users are seeded with password `Demo!Usuario2026`
+> for pagination/search testing.
+
+Login at http://localhost:5173/login — the frontend redirects there
+automatically when no session is present.
 
 ---
 
@@ -150,13 +164,14 @@ make test
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| 0 | Cimientos (this repo) | ✅ |
-| 1 | Auth + Users | ⏳ |
-| 2 | RBAC (roles/permissions engine) | ⏳ |
-| 3 | Employees + departments | ⏳ |
-| 4 | Audit log (append-only) + UI | ⏳ |
-| 5 | App shell (sidebar, dashboard, theme polish) | ⏳ |
-| 6 | Hardening (OWASP sweep, perf, a11y, coverage, docs) | ⏳ |
+| 0 | Cimientos (this repo) | done |
+| 1a | Auth core (login/JWT/refresh rotation/logout/me + seed + frontend login) | done |
+| 1b | Users CRUD (list/create/update/deactivate/force-reset/unlock) | next |
+| 2 | RBAC (roles/permissions engine) | pending |
+| 3 | Employees + departments | pending |
+| 4 | Audit log (append-only) + UI | pending |
+| 5 | App shell (sidebar, dashboard, theme polish) | pending |
+| 6 | Hardening (OWASP sweep, perf, a11y, coverage, docs) | pending |
 
 ---
 
