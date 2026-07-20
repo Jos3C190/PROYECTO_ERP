@@ -1,0 +1,58 @@
+# ERP System — Production-ish compose overlay.
+# Usage: docker compose -f compose.yaml -f compose.prod.yaml --profile prod up -d --build
+#
+# This profile builds optimized images, drops dev tooling, runs as non-root,
+# and assumes TLS is terminated upstream (e.g. Nginx). It is NOT a complete
+# production setup — it is a sane hardened starting point for the boilerplate.
+# Further hardening (secrets manager, external Postgres, S3, etc.) is expected
+# at deploy time and is explicitly out of scope for the phase-0 boilerplate.
+
+services:
+  db:
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    restart: unless-stopped
+    # In production do not expose 5432 to the host.
+    ports: !reset []
+
+  backend:
+    build:
+      target: prod
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+      LOG_LEVEL: WARNING
+    restart: unless-stopped
+    ports: !reset []
+    # Let Nginx (or your reverse proxy) expose 8000.
+    expose:
+      - "8000"
+
+  frontend:
+    build:
+      target: prod
+      args:
+        PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+    environment:
+      ORIGIN: ${PUBLIC_ORIGIN:-https://localhost}
+      BODY_SIZE_LIMIT: "1500000"
+    restart: unless-stopped
+    ports: !reset []
+    expose:
+      - "3000"
+
+  # Minimal reverse proxy. Configure certs/headers for your domain at deploy time.
+  nginx:
+    profiles: [prod]
+    image: nginx:1.27-alpine
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped

@@ -1,0 +1,118 @@
+# =============================================================
+# ERP System — docker compose (development base)
+# Phase 0: db + backend + frontend with hot reload + healthchecks.
+# =============================================================
+
+services:
+  # ---------------- Postgres ----------------
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-erp_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production_please}
+      POSTGRES_DB: ${POSTGRES_DB:-erp_db}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=trust"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-erp_admin} -d ${POSTGRES_DB:-erp_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  # ---------------- Backend (FastAPI) ----------------
+  backend:
+    build:
+      context: ./backend
+      target: dev
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL_SYNC: ${DATABASE_URL_SYNC}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      ARGON2_TIME_COST: ${ARGON2_TIME_COST:-3}
+      ARGON2_MEMORY_COST: ${ARGON2_MEMORY_COST:-65536}
+      ARGON2_PARALLELISM: ${ARGON2_PARALLELISM:-4}
+      LOGIN_RATE_LIMIT: ${LOGIN_RATE_LIMIT:-10/minute}
+      REFRESH_RATE_LIMIT: ${REFRESH_RATE_LIMIT:-30/minute}
+      RESET_RATE_LIMIT: ${RESET_RATE_LIMIT:-5/minute}
+      SECURE_COOKIES: ${SECURE_COOKIES:-true}
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - backend-cache:/root/.cache/uv
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health/live', timeout=3); sys.exit(0)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+
+  # ---------------- Frontend (SvelteKit dev) ----------------
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+      args:
+        PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+    environment:
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+      PUBLIC_APP_NAME: ${PUBLIC_APP_NAME:-ERP System}
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+      ORIGIN: http://localhost:5173
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+      - frontend-svelte-kit:/app/.svelte-kit
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5173/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
+    restart: unless-stopped
+
+  # ---------------- Redis (optional, used from phase 1+) ----------------
+  redis:
+    profiles: [redis]
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redis-data:
+  backend-cache:
+  frontend-node-modules:
+  frontend-svelte-kit:
