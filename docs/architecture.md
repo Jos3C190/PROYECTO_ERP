@@ -1,0 +1,146 @@
+# Architecture
+
+> Status: **Phase 0 (Cimientos)**. This document grows each phase. Sections
+> marked *(planned)* describe the design that subsequent phases will implement.
+
+## 1. Overview
+
+ERP System is a modular enterprise resource planning boilerplate. The repository
+is a **monorepo** with two deployable units and one stateful service:
+
+```
+erp-system/
+├── backend/      FastAPI (async) — Python 3.12
+├── frontend/     SvelteKit 5 (TypeScript strict) — Svelte 5 runes
+└── (compose)     PostgreSQL 16, optional Redis, optional Nginx (prod)
+```
+
+## 2. Backend — Clean / Hexagonal layering
+
+```
+Presentation (api/v1) ──► Application (use cases) ──► Domain (entities, ports)
+                                  ▲
+                          Infrastructure (db, repos, external)
+```
+
+### 2.1 Direction of dependencies (enforced)
+
+| Layer            | May import                                       | May NOT import |
+|------------------|--------------------------------------------------|----------------|
+| `domain/`        | stdlib only                                      | FastAPI, SQLAlchemy, Pydantic, infrastructure |
+| `application/`   | `domain/` (ports), stdlib                        | FastAPI, SQLAlchemy, infrastructure |
+| `infrastructure/`| `domain/` (ports), `core/`, SQLAlchemy, etc.     | `api/`, `application/` |
+| `api/v1/`        | `application/`, `core/`, `infrastructure/db` (session only) | concrete repositories beyond session wiring |
+| `core/`          | stdlib + 3rd-party cross-cutting (config, logging, security) | any layer above |
+| `middlewares/`   | `core/`                                          | domain/application/infrastructure |
+
+### 2.2 Key patterns
+
+- **Repository + Unit of Work** for persistence. Repos are port interfaces in
+  `domain/ports/` and concrete implementations in `infrastructure/repositories/`.
+- **Use cases** in `application/` are small async classes with `execute(...)`.
+  They depend on ports, not on concrete repos.
+- **FastAPI `Depends()`** is the only DI mechanism. Providers live in
+  `api/v1/deps.py`. Tests override a single dependency to swap a real repo for
+  an in-memory fake.
+- **DTOs (Pydantic v2)** in `api/v1/schemas/` are intentionally separate from
+  ORM models in `infrastructure/models/`. Routers never return ORM models.
+
+### 2.3 Cross-cutting concerns
+
+| Concern         | Location |
+|-----------------|----------|
+| Configuration   | `app/core/config.py` (pydantic-settings, env-driven) |
+| Logging         | `app/core/logging.py` (structlog: dev=console, prod=JSON) |
+| Security primitives | `app/core/security.py` (Argon2id, constant-time compare) |
+| Error hierarchy | `app/core/exceptions.py` → mapped by `api/v1/exception_handlers.py` |
+| Security headers | `app/middlewares/security_headers.py` |
+| Request context + access log | `app/middlewares/request_context.py` |
+| CORS            | `app/main.py` (origins from settings, never `*` with credentials) |
+| Rate limiting   | *(planned Phase 1)* slowapi or Redis-backed middleware |
+| Audit hook      | *(planned Phase 4)* middleware + use-case integration |
+
+## 3. Frontend — feature-sliced
+
+```
+src/
+├── routes/             thin route files only (SvelteKit file-based routing)
+├── lib/
+│   ├── api/            centralised client (refresh interceptor: Phase 1)
+│   ├── components/ui/  design system (Button, Card, ThemeToggle, ...)
+│   ├── features/       feature modules (auth, users, employees, roles, audit-log)  *(planned)*
+│   ├── stores/         global state (theme, session, permissions)
+│   ├── types/          shared TypeScript types
+│   └── utils/          pure helpers
+```
+
+Rules:
+
+- `routes/*.svelte` import from `lib/features/<feature>` and `lib/components/ui`
+  only. No business logic in route files.
+- `lib/features/<feature>` groups that feature's components, hooks, types and
+  API calls. Features do not import from each other except via well-defined
+  shared utilities.
+- `lib/components/ui` is business-agnostic and reusable across features.
+
+## 4. Request lifecycle (Phase 0)
+
+```
+Client ─► CORS ─► RequestContext (request_id, access log) ─► SecurityHeaders
+       ─► Router ─► Dependency providers (SessionDep) ─► Use case
+       ─► (exception handler if AppError) ─► JSONResponse
+```
+
+## 5. Deployment topologies
+
+- **Development** (`compose.yaml`): `db` + `backend` (hot reload) + `frontend`
+  (Vite dev server). Migrations run automatically on backend startup.
+- **Production** (`compose.prod.yaml`, `--profile prod`): multi-stage images,
+  non-root users, no dev tools, Nginx in front as reverse proxy. TLS is
+  terminated upstream (configurable). `/docs` and `/redoc` disabled.
+- **Optional Redis** (`--profile redis`): used from Phase 1+ for rate limiting,
+  token revocation list, permission cache.
+
+## 6. OWASP mapping (target state per phase)
+
+| OWASP Top 10 (2021) | Mitigation | Phase |
+|---|---|---|
+| A01 Broken Access Control | `require_permission(...)` dependency, deny-by-default, 403 tests per endpoint | 2 |
+| A02 Cryptographic Failures | Argon2id, JWT secrets from env, short access TTL, refresh rotation | 1 |
+| A03 Injection | SQLAlchemy parameterised queries only, Pydantic input validation | 1+ |
+| A04 Insecure Design | Abuse-case modelling + tests (brute force, IDOR, privilege escalation) | 1+ |
+| A05 Security Misconfiguration | Security headers, restricted CORS, debug off in prod, generic errors | 0 ✅ |
+| A06 Vulnerable Components | Pinned versions, `pip-audit`/`pnpm audit` documented | 0 ✅ |
+| A07 Identification & Auth Failures | Rate limit, progressive lockout, session invalidation on password change | 1 |
+| A08 Software & Data Integrity Failures | Audit log append-only, no UPDATE/DELETE endpoints | 4 |
+| A09 Logging & Monitoring Failures | Structured logs, security events in audit log, no secret logging | 0/4 |
+| A10 SSRF | N/A in Phase 0; documented policy for future external integrations | — |
+
+## 7. ADRs (Architecture Decision Records, short form)
+
+### ADR-001 — UUID primary keys
+**Decision:** All entities use UUID (server-side `gen_random_uuid()`), not
+autoincrement int. **Rationale:** prevents resource enumeration, eases future
+sharding/federation, safe to expose in URLs. **Consequences:** slightly larger
+indexes; sort order is not insertion order (use `created_at` for ordering).
+
+### ADR-002 — Async-only data access
+**Decision:** Backend uses async SQLAlchemy (`AsyncSession`, `asyncpg`) end to
+end; sync access only inside Alembic offline mode. **Rationale:** FastAPI is
+async-native; mixing sync DB calls would block the event loop. **Consequences:**
+test code must be async; some third-party libs that require sync sessions are
+unsuitable.
+
+### ADR-003 — Migrations on startup
+**Decision:** The backend container runs `alembic upgrade head` on startup via
+the lifespan hook. **Rationale:** single-command setup goal; avoids a separate
+init container. **Consequences:** not ideal for blue/green deploys with
+long-running migrations — for production, decouple migrations into a one-shot
+Job/InitContainer (documented in `docs/api.md` when relevant).
+
+### ADR-004 — No FOUC for theme
+**Decision:** Theme is applied by an inline blocking script in `app.html`
+before Svelte hydrates. **Rationale:** avoids the dark-mode flash. The script
+is tiny and does not itself introduce XSS (no user input is read).
+**Consequences:** CSP allows inline scripts in dev only; production tightens
+this with a nonce strategy once auth is wired (Phase 1).
