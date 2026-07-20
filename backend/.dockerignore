@@ -1,0 +1,24 @@
+# Build context exclusions for the backend image.
+# Keep the image build fast and avoid leaking host artifacts.
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.log
+.env
+.env.*
+!.env.example
+uploads/
+.git/
+.gitignore
+Dockerfile
+.dockerignore
+uv.lock

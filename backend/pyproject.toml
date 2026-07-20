@@ -1,0 +1,148 @@
+[project]
+name = "erp-backend"
+version = "0.1.0"
+description = "ERP System — backend (FastAPI, async SQLAlchemy 2.0, PostgreSQL)."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "Proprietary" }
+authors = [{ name = "ERP Team" }]
+
+dependencies = [
+    # Web framework
+    "fastapi>=0.115,<0.117",
+    "uvicorn[standard]>=0.30,<0.33",
+    # Async DB stack
+    "sqlalchemy[asyncio]>=2.0.30,<2.1",
+    "asyncpg>=0.29,<0.31",
+    "alembic>=1.13,<1.15",
+    "psycopg[binary]>=3.2,<3.3",
+    # Validation / DTOs
+    "pydantic>=2.7,<3",
+    "pydantic-settings>=2.3,<3",
+    "email-validator>=2.1,<3",
+    # Security
+    "argon2-cffi>=23.1,<24",
+    "pyjwt[crypto]>=2.8,<3",
+    # Logging
+    "structlog>=24.1,<26",
+    # HTTP / middleware helpers
+    "python-multipart>=0.0.9,<0.1",
+    "itsdangerous>=2.2,<3",
+    # Utils
+    "python-dotenv>=1.0,<2",
+    "typer>=0.12,<1",
+    "faker>=25.0,<37",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2,<9",
+    "pytest-asyncio>=0.23,<0.25",
+    "pytest-cov>=5.0,<7",
+    "httpx>=0.27,<0.29",
+    "anyio[trio]>=4.3,<5",
+    "ruff>=0.5,<0.10",
+    "mypy>=1.10,<2",
+    "types-python-jose>=3.3,<4",
+    "pip-audit>=2.7,<3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app", "seed"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2,<9",
+    "pytest-asyncio>=0.23,<0.25",
+    "pytest-cov>=5.0,<7",
+    "httpx>=0.27,<0.29",
+    "anyio[trio]>=4.3,<5",
+    "ruff>=0.5,<0.10",
+    "mypy>=1.10,<2",
+    "pip-audit>=2.7,<3",
+]
+
+# ---------- pytest ----------
+[tool.pytest.ini_options]
+minversion = "8.2"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+filterwarnings = [
+    "error::DeprecationWarning",
+    "ignore::DeprecationWarning:sqlalchemy.*",
+]
+markers = [
+    "unit: pure-Python unit tests (no I/O, no DB)",
+    "integration: tests that touch a real database",
+    "e2e: end-to-end flows against the assembled FastAPI app",
+]
+
+# ---------- ruff ----------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W", "I", "N", "B", "C4", "UP", "SIM", "RET", "PL",
+    "ASYNC", "S", "A", "DTZ", "EM", "PT", "RUF", "TRY", "C90",
+]
+ignore = [
+    "E501",   # line length handled by formatter
+    "PLR0913","PLR0912","PLR0915",  # function complexity (over-eager for FastAPI deps)
+    "TRY003", # long messages in exceptions are fine here
+    "EM101","EM102", # exception message style
+    "B008",   # FastAPI Depends() in defaults is idiomatic
+    "S101",   # assert in tests
+    "S104",   # 0.0.0.0 binding in containers
+    "S603","S607", # subprocess calls in scripts
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "PLR2004", "C901", "TRY", "RUF"]
+"seed/**"  = ["S", "PLR2004"]
+"alembic/**" = ["S", "E", "F"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ---------- mypy ----------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_return_any = true
+no_implicit_reexport = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+# ---------- coverage ----------
+[tool.coverage.run]
+branch = true
+source = ["app"]
+omit = ["app/main.py", "*/__init__.py", "tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+show_missing = true
+skip_covered = false
