@@ -71,12 +71,15 @@
           El token de acceso se renueva automáticamente vía refresh token (rotación con detección de reuso).
         </p>
       </Card>
-      <Card title="Próximamente">
-        <ul class="space-y-1.5 text-sm text-foreground-muted">
-          <li>· Gestión de usuarios (Fase 1b)</li>
-          <li>· RBAC dinámico (Fase 2)</li>
-          <li>· Empleados (Fase 3)</li>
-          <li>· Bitácora (Fase 4)</li>
+      <Card title="Módulos">
+        <ul class="space-y-2 text-sm">
+          <li>
+            <a href="/users" class="text-primary hover:underline">Gestión de usuarios →</a>
+            <span class="block text-xs text-foreground-muted">Listar, activar, desactivar, desbloquear</span>
+          </li>
+          <li class="text-foreground-muted">· RBAC (Fase 2)</li>
+          <li class="text-foreground-muted">· Empleados (Fase 3)</li>
+          <li class="text-foreground-muted">· Bitácora (Fase 4)</li>
         </ul>
       </Card>
     </div>

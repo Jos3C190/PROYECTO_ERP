@@ -145,6 +145,18 @@ export interface UserOut {
   updated_at: string;
 }
 
+export interface PageMeta {
+  page: number;
+  size: number;
+  total: number;
+  pages: number;
+}
+
+export interface Page<T> {
+  items: T[];
+  meta: PageMeta;
+}
+
 export const api = {
   auth: {
     login: (login: string, password: string) =>
@@ -164,6 +176,30 @@ export const api = {
         method: 'POST'
       }),
     me: () => apiFetch<UserOut>('/auth/me')
+  },
+  users: {
+    list: (params: { page?: number; size?: number; search?: string } = {}) => {
+      const sp = new URLSearchParams();
+      if (params.page) sp.set('page', String(params.page));
+      if (params.size) sp.set('size', String(params.size));
+      if (params.search) sp.set('search', params.search);
+      const qs = sp.toString();
+      return apiFetch<Page<UserOut>>(`/users${qs ? `?${qs}` : ''}`);
+    },
+    get: (id: string) => apiFetch<UserOut>(`/users/${id}`),
+    create: (data: { username: string; email: string; password: string; is_superuser?: boolean }) =>
+      apiFetch<UserOut>('/users', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: { is_active?: boolean; is_superuser?: boolean }) =>
+      apiFetch<UserOut>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    forcePasswordReset: (id: string, newPassword: string) =>
+      apiFetch<{ message: string; code: string }>(`/users/${id}/force-password-reset`, {
+        method: 'POST',
+        body: JSON.stringify({ new_password: newPassword })
+      }),
+    unlock: (id: string) =>
+      apiFetch<{ message: string; code: string }>(`/users/${id}/unlock`, { method: 'POST' }),
+    deactivate: (id: string) =>
+      apiFetch<{ message: string; code: string }>(`/users/${id}`, { method: 'DELETE' })
   },
   health: {
     live: () => apiFetch<HealthReport>('/health/live', { noAuth: true, noRefresh: true })
