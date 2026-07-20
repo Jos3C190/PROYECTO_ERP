@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens (Phase 0 minimal). Full design system in docs/design-system.md (Phase 5).
+ * Values are RGB triplets so Tailwind's <alpha-value> syntax can apply opacity.
+ */
+:root,
+[data-theme='light'] {
+  --surface: 255 255 255;
+  --surface-muted: 247 248 250;
+  --border: 226 229 237;
+  --foreground: 17 24 39;
+  --foreground-muted: 90 100 116;
+  --primary: 37 99 235;
+  --primary-foreground: 255 255 255;
+  --accent: 14 165 233;
+  --danger: 220 38 38;
+  --success: 22 163 74;
+  --warning: 217 119 6;
+
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --surface: 14 17 25;
+  --surface-muted: 22 26 37;
+  --border: 38 44 60;
+  --foreground: 233 237 244;
+  --foreground-muted: 156 166 184;
+  --primary: 96 165 250;
+  --primary-foreground: 8 12 20;
+  --accent: 56 189 248;
+  --danger: 248 113 113;
+  --success: 74 222 128;
+  --warning: 251 191 36;
+
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-surface text-foreground font-sans antialiased;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Visible focus for keyboard users (accessibility). */
+:focus-visible {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Respect reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Subtle scrollbars that adapt to theme. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--border)) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(var(--border));
+  border-radius: 9999px;
+}
