@@ -27,6 +27,9 @@ class UserRepository(Protocol):
     ) -> tuple[Sequence[User], int]:
         """Return (users, total_count)."""
 
+    async def count_active_superadmins(self) -> int:
+        """Count non-deleted users with is_superuser=True and is_active=True."""
+
     async def add(self, user: User) -> User: ...
 
     async def update(self, user: User) -> User: ...

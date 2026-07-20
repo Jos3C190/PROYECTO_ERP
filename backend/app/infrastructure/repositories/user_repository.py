@@ -91,6 +91,14 @@ class SqlAlchemyUserRepository:
         total = int((await self._session.execute(count_base)).scalar_one())
         return [_to_domain(o) for o in items], total
 
+    async def count_active_superadmins(self) -> int:
+        stmt = select(func.count(ORMUser.id)).where(
+            ORMUser.is_superuser.is_(True),
+            ORMUser.is_active.is_(True),
+            ORMUser.deleted_at.is_(None),
+        )
+        return int((await self._session.execute(stmt)).scalar_one())
+
     async def add(self, user: DomainUser) -> DomainUser:
         orm = ORMUser(
             username=user.username,

@@ -53,6 +53,13 @@ class InMemoryUserRepository:
         total = len(items)
         return items[offset : offset + limit], total
 
+    async def count_active_superadmins(self) -> int:
+        return sum(
+            1
+            for u in self._by_id.values()
+            if u.is_superuser and u.is_active and not u.is_deleted
+        )
+
     async def add(self, user: User) -> User:
         # Use a fresh server-generated id
         new_id = uuid.uuid4()
