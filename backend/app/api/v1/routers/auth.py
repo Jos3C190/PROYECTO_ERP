@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1.deps import (
     CurrentUser,
+    get_audit_service,
     get_authenticate_user_use_case,
     get_logout_use_case,
     get_refresh_token_use_case,
@@ -23,6 +24,7 @@ from app.api.v1.schemas.auth import (
     UserOut,
 )
 from app.api.v1.schemas.common import MessageOut
+from app.application.audit.audit_service import AuditService
 from app.application.auth.authenticate_user import AuthenticateUserUseCase, LoginInput
 from app.application.auth.logout import LogoutInput, LogoutUseCase
 from app.application.auth.refresh_token import (
@@ -66,21 +68,42 @@ async def login(
     request: Request,
     response: Response,
     use_case: AuthenticateUserUseCase = Depends(get_authenticate_user_use_case),
+    audit: AuditService = Depends(get_audit_service),
 ) -> TokenResponse:
-    result = await use_case.execute(
-        LoginInput(
-            login=payload.login,
-            password=payload.password,
-            user_agent=request.headers.get("user-agent"),
-            ip_address=request.client.host if request.client else None,
+    ip = request.client.host if request.client else None
+    ua = request.headers.get("user-agent")
+    try:
+        result = await use_case.execute(
+            LoginInput(
+                login=payload.login,
+                password=payload.password,
+                user_agent=ua,
+                ip_address=ip,
+            )
         )
-    )
-    _set_refresh_cookie(response, result.refresh_token)
-    return TokenResponse(
-        access_token=result.access_token,
-        expires_in=result.expires_in_seconds,
-        refresh_token=result.refresh_token,
-    )
+        await audit.record(
+            action="LOGIN_SUCCESS",
+            user_id=result.user_id,
+            resource_type="auth",
+            ip_address=ip,
+            user_agent=ua,
+        )
+        _set_refresh_cookie(response, result.refresh_token)
+        return TokenResponse(
+            access_token=result.access_token,
+            expires_in=result.expires_in_seconds,
+            refresh_token=result.refresh_token,
+        )
+    except Exception as exc:
+        await audit.record(
+            action="LOGIN_FAILED",
+            resource_type="auth",
+            ip_address=ip,
+            user_agent=ua,
+            status="failure",
+            metadata={"login": payload.login[:64], "reason": getattr(exc, "code", "error")},
+        )
+        raise
 
 
 @router.post(

@@ -19,8 +19,10 @@ from app.application.auth.refresh_token import RefreshTokenUseCase
 from app.application.auth.register_user import RegisterUserUseCase
 from app.application.password_policy import PasswordPolicy
 from app.application.rbac.check_permission import CheckPermissionUseCase
+from app.application.audit.audit_service import AuditService
 from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.domain.entities.user import User
+from app.domain.ports.audit_repository import AuditRepository
 from app.domain.ports.permission_repository import PermissionRepository
 from app.domain.ports.refresh_token_repository import RefreshTokenRepository
 from app.domain.ports.role_repository import RoleRepository
@@ -56,6 +58,18 @@ def get_role_repository(session: SessionDep) -> RoleRepository:
 
 def get_permission_repository(session: SessionDep) -> PermissionRepository:
     return SqlAlchemyPermissionRepository(session)
+
+
+def get_audit_repository(session: SessionDep) -> AuditRepository:
+    from app.infrastructure.repositories import SqlAlchemyAuditRepository
+
+    return SqlAlchemyAuditRepository(session)
+
+
+def get_audit_service(
+    audit_repo: Annotated[AuditRepository, Depends(get_audit_repository)],
+) -> AuditService:
+    return AuditService(audit_repo)
 
 
 def get_token_service() -> TokenService:
