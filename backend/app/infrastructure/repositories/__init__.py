@@ -1,4 +1,7 @@
 """Concrete repositories. Importing this package wires the implementations."""
+from app.infrastructure.repositories.audit_repository import (
+    SqlAlchemyAuditRepository,
+)
 from app.infrastructure.repositories.department_repository import (
     SqlAlchemyDepartmentRepository,
 )
@@ -26,5 +29,6 @@ __all__ = [
     "SqlAlchemyPermissionRepository",
     "SqlAlchemyDepartmentRepository",
     "SqlAlchemyEmployeeRepository",
+    "SqlAlchemyAuditRepository",
     "JwtTokenService",
 ]
