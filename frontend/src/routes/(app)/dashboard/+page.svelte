@@ -83,7 +83,14 @@
             <a href="/roles" class="text-primary hover:underline">Roles y permisos →</a>
             <span class="block text-xs text-foreground-muted">Ver roles, matriz de permisos</span>
           </li>
-          <li class="text-foreground-muted">· Empleados (Fase 3)</li>
+          <li>
+            <a href="/employees" class="text-primary hover:underline">Empleados →</a>
+            <span class="block text-xs text-foreground-muted">Listar, buscar, filtrar por departamento</span>
+          </li>
+          <li>
+            <a href="/departments" class="text-primary hover:underline">Departamentos →</a>
+            <span class="block text-xs text-foreground-muted">Jerarquía de departamentos</span>
+          </li>
           <li class="text-foreground-muted">· Bitácora (Fase 4)</li>
         </ul>
       </Card>

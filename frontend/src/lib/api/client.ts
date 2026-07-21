@@ -182,6 +182,35 @@ export interface EffectivePermissions {
   is_superuser: boolean;
 }
 
+export interface DepartmentOut {
+  id: string;
+  name: string;
+  description: string | null;
+  parent_department_id: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface EmployeeOut {
+  id: string;
+  employee_code: string;
+  first_name: string;
+  last_name: string;
+  user_id: string | null;
+  document_id: string | null;
+  birth_date: string | null;
+  phone: string | null;
+  address: string | null;
+  department_id: string | null;
+  position: string | null;
+  hire_date: string | null;
+  termination_date: string | null;
+  status: string;
+  photo_url: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
 export const api = {
   auth: {
     login: (login: string, password: string) =>
@@ -256,5 +285,41 @@ export const api = {
   },
   health: {
     live: () => apiFetch<HealthReport>('/health/live', { noAuth: true, noRefresh: true })
+  },
+  departments: {
+    list: () => apiFetch<DepartmentOut[]>('/departments'),
+    get: (id: string) => apiFetch<DepartmentOut>(`/departments/${id}`),
+    create: (data: { name: string; description?: string; parent_department_id?: string }) =>
+      apiFetch<DepartmentOut>('/departments', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: { name?: string; description?: string; parent_department_id?: string }) =>
+      apiFetch<DepartmentOut>(`/departments/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: (id: string) =>
+      apiFetch<{ message: string; code: string }>(`/departments/${id}`, { method: 'DELETE' })
+  },
+  employees: {
+    list: (params: { page?: number; size?: number; search?: string; department_id?: string; status?: string } = {}) => {
+      const sp = new URLSearchParams();
+      if (params.page) sp.set('page', String(params.page));
+      if (params.size) sp.set('size', String(params.size));
+      if (params.search) sp.set('search', params.search);
+      if (params.department_id) sp.set('department_id', params.department_id);
+      if (params.status) sp.set('status', params.status);
+      const qs = sp.toString();
+      return apiFetch<Page<EmployeeOut>>(`/employees${qs ? `?${qs}` : ''}`);
+    },
+    get: (id: string) => apiFetch<EmployeeOut>(`/employees/${id}`),
+    create: (data: Record<string, unknown>) =>
+      apiFetch<EmployeeOut>('/employees', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: Record<string, unknown>) =>
+      apiFetch<EmployeeOut>(`/employees/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: (id: string) =>
+      apiFetch<{ message: string; code: string }>(`/employees/${id}`, { method: 'DELETE' }),
+    linkUser: (empId: string, userId: string) =>
+      apiFetch<{ message: string; code: string }>(`/employees/${empId}/link-user`, {
+        method: 'POST',
+        body: JSON.stringify({ user_id: userId })
+      }),
+    unlinkUser: (empId: string) =>
+      apiFetch<{ message: string; code: string }>(`/employees/${empId}/unlink-user`, { method: 'POST' })
   }
 };
