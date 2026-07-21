@@ -1,9 +1,8 @@
 """ORM models package. Importing this module registers all tables on
-`Base.metadata`. Keep this file as a single import point so `alembic env.py`
-and tests can do `from app.infrastructure import models` to ensure full
-registration.
+`Base.metadata`.
 """
 
+from app.infrastructure.models.audit import AuditLog  # noqa: F401
 from app.infrastructure.models.auth import PasswordResetToken, RefreshToken  # noqa: F401
 from app.infrastructure.models.employee import Department, Employee  # noqa: F401
 from app.infrastructure.models.rbac import (  # noqa: F401
@@ -24,4 +23,5 @@ __all__: list[str] = [
     "UserRole",
     "Department",
     "Employee",
+    "AuditLog",
 ]
