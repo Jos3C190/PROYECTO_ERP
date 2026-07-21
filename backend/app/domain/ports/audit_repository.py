@@ -20,8 +20,7 @@ class AuditRepository(Protocol):
         self,
         *,
         limit: int = 50,
-        cursor_created_at: datetime | None = None,
-        cursor_id: uuid.UUID | None = None,
+        offset: int = 0,
         user_id: uuid.UUID | None = None,
         action: str | None = None,
         resource_type: str | None = None,
@@ -30,7 +29,7 @@ class AuditRepository(Protocol):
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ) -> tuple[Sequence[AuditLog], bool]:
-        """Return (logs, has_more). Keyset pagination over (created_at DESC, id DESC)."""
+        """Return (logs, has_more). Paginated by offset/limit."""
 
     async def count(
         self,

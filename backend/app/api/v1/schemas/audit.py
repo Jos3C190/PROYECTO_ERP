@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from app.api.v1.schemas.common import ORMOut
+from app.api.v1.schemas.common import ORMOut, PageMeta
 
 
 class AuditLogOut(ORMOut):
@@ -27,5 +27,4 @@ class AuditLogOut(ORMOut):
 
 class AuditLogPage(BaseModel):
     items: list[AuditLogOut]
-    next_cursor: str | None = None
-    has_more: bool = False
+    meta: PageMeta

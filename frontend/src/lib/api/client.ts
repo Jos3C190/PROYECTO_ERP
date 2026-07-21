@@ -228,8 +228,7 @@ export interface AuditLogOut {
 
 export interface AuditLogPage {
   items: AuditLogOut[];
-  next_cursor: string | null;
-  has_more: boolean;
+  meta: PageMeta;
 }
 
 export const api = {
@@ -345,16 +344,16 @@ export const api = {
   },
   audit: {
     list: (params: {
-      limit?: number;
-      cursor?: string;
+      page?: number;
+      size?: number;
       user_id?: string;
       action?: string;
       resource_type?: string;
       status?: string;
     } = {}) => {
       const sp = new URLSearchParams();
-      if (params.limit) sp.set('limit', String(params.limit));
-      if (params.cursor) sp.set('cursor', params.cursor);
+      if (params.page) sp.set('page', String(params.page));
+      if (params.size) sp.set('size', String(params.size));
       if (params.user_id) sp.set('user_id', params.user_id);
       if (params.action) sp.set('action', params.action);
       if (params.resource_type) sp.set('resource_type', params.resource_type);

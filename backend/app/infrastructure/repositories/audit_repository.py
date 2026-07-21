@@ -63,8 +63,7 @@ class SqlAlchemyAuditRepository:
         self,
         *,
         limit: int = 50,
-        cursor_created_at: datetime | None = None,
-        cursor_id: uuid.UUID | None = None,
+        offset: int = 0,
         user_id: uuid.UUID | None = None,
         action: str | None = None,
         resource_type: str | None = None,
@@ -73,16 +72,8 @@ class SqlAlchemyAuditRepository:
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ) -> tuple[Sequence[DomainLog], bool]:
-        """Keyset pagination over (created_at DESC, id DESC)."""
+        """Paginated by offset/limit over (created_at DESC, id DESC)."""
         conditions: list[Any] = []
-        if cursor_created_at is not None and cursor_id is not None:
-            # Strictly before the cursor row.
-            conditions.append(
-                or_clause(
-                    ORMLog.created_at < cursor_created_at,
-                    and_(ORMLog.created_at == cursor_created_at, ORMLog.id < cursor_id),
-                )
-            )
         if user_id is not None:
             conditions.append(ORMLog.user_id == user_id)
         if action is not None:
@@ -101,13 +92,11 @@ class SqlAlchemyAuditRepository:
         stmt = select(ORMLog)
         if conditions:
             stmt = stmt.where(*conditions)
-        stmt = stmt.order_by(ORMLog.created_at.desc(), ORMLog.id.desc()).limit(limit + 1)
+        stmt = stmt.order_by(ORMLog.created_at.desc(), ORMLog.id.desc()).offset(offset).limit(limit)
 
         result = await self._session.execute(stmt)
         rows = result.scalars().all()
-        has_more = len(rows) > limit
-        items = rows[:limit]
-        return [_to_domain(o) for o in items], has_more
+        return [_to_domain(o) for o in rows], False
 
     async def count(
         self,

@@ -1,12 +1,10 @@
-"""Audit log router — read-only with keyset (cursor) pagination.
+"""Audit log router — read-only with page-based pagination.
 
 Only GET endpoints. No POST/PUT/PATCH/DELETE — the audit log is append-only
 and entries are created internally by AuditService during business operations.
 """
 from __future__ import annotations
 
-import base64
-import json
 import uuid
 from datetime import datetime, timezone
 
@@ -14,6 +12,7 @@ from fastapi import APIRouter, Depends, Query, status
 
 from app.api.v1.deps import SessionDep, require_permission
 from app.api.v1.schemas.audit import AuditLogOut, AuditLogPage
+from app.api.v1.schemas.common import PageMeta
 from app.domain.ports.audit_repository import AuditRepository
 
 router = APIRouter(prefix="/audit-logs", tags=["audit"])
@@ -25,30 +24,17 @@ def _get_audit_repo(session: SessionDep) -> AuditRepository:
     return SqlAlchemyAuditRepository(session)
 
 
-def _encode_cursor(created_at: datetime, log_id: uuid.UUID) -> str:
-    payload = json.dumps(
-        {"created_at": created_at.isoformat(), "id": str(log_id)},
-        separators=(",", ":"),
-    )
-    return base64.b64encode(payload.encode()).decode()
-
-
-def _decode_cursor(cursor: str) -> tuple[datetime, uuid.UUID]:
-    payload = json.loads(base64.b64decode(cursor.encode()))
-    return datetime.fromisoformat(payload["created_at"]), uuid.UUID(payload["id"])
-
-
 @router.get(
     "",
     response_model=AuditLogPage,
     status_code=status.HTTP_200_OK,
-    summary="Listar bitácora (cursor pagination)",
+    summary="Listar bitácora (paginado)",
     dependencies=[Depends(require_permission("audit_log:read"))],
 )
 async def list_audit_logs(
     repo: AuditRepository = Depends(_get_audit_repo),
-    limit: int = Query(50, ge=1, le=200),
-    cursor: str | None = Query(None, description="Cursor codificado de la página anterior"),
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=200),
     user_id: uuid.UUID | None = Query(None),
     action: str | None = Query(None),
     resource_type: str | None = Query(None),
@@ -57,18 +43,11 @@ async def list_audit_logs(
     start_date: datetime | None = Query(None),
     end_date: datetime | None = Query(None),
 ) -> AuditLogPage:
-    cursor_created_at: datetime | None = None
-    cursor_id: uuid.UUID | None = None
-    if cursor:
-        try:
-            cursor_created_at, cursor_id = _decode_cursor(cursor)
-        except Exception:
-            pass  # ignore invalid cursor, start from beginning
+    offset = (page - 1) * size
 
-    logs, has_more = await repo.list(
-        limit=limit,
-        cursor_created_at=cursor_created_at,
-        cursor_id=cursor_id,
+    logs, _has_more = await repo.list(
+        limit=size,
+        offset=offset,
         user_id=user_id,
         action=action,
         resource_type=resource_type,
@@ -77,6 +56,18 @@ async def list_audit_logs(
         start_date=start_date,
         end_date=end_date,
     )
+
+    total = await repo.count(
+        user_id=user_id,
+        action=action,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        status=status_filter,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+    pages = (total + size - 1) // size if total else 1
 
     items = [
         AuditLogOut(
@@ -96,9 +87,7 @@ async def list_audit_logs(
         for l in logs
     ]
 
-    next_cursor: str | None = None
-    if has_more and items:
-        last = items[-1]
-        next_cursor = _encode_cursor(last.created_at, last.id)
-
-    return AuditLogPage(items=items, next_cursor=next_cursor, has_more=has_more)
+    return AuditLogPage(
+        items=items,
+        meta=PageMeta(page=page, size=size, total=total, pages=pages),
+    )

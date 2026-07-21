@@ -70,31 +70,24 @@ async def test_audit_logs_require_auth(e2e_client) -> None:
     assert r.status_code == 401
 
 
-async def test_audit_logs_cursor_pagination(e2e_client) -> None:
+async def test_audit_logs_pagination(e2e_client) -> None:
     headers = await _login_superadmin(e2e_client)
-    # Do several logins to generate entries
     for _ in range(3):
         await e2e_client.post(
             "/api/v1/auth/login",
             json={"login": "superadmin", "password": "Cambio!Seguro2026"},
         )
-    # Fetch with small limit
-    r = await e2e_client.get("/api/v1/audit-logs?limit=2", headers=headers)
+    r = await e2e_client.get("/api/v1/audit-logs?page=1&size=2", headers=headers)
     assert r.status_code == 200
     body = r.json()
-    assert len(body["items"]) == 2
-    assert body["has_more"] is True
-    assert body["next_cursor"] is not None
+    assert len(body["items"]) <= 2
+    assert body["meta"]["pages"] >= 2
+    assert body["meta"]["total"] >= 2
 
-    # Fetch next page
-    r2 = await e2e_client.get(
-        f"/api/v1/audit-logs?limit=2&cursor={body['next_cursor']}", headers=headers
-    )
+    r2 = await e2e_client.get("/api/v1/audit-logs?page=2&size=2", headers=headers)
     assert r2.status_code == 200
-    body2 = r2.json()
-    # Items should be different (older)
     ids_page1 = {i["id"] for i in body["items"]}
-    ids_page2 = {i["id"] for i in body2["items"]}
+    ids_page2 = {i["id"] for i in r2.json()["items"]}
     assert not ids_page1.intersection(ids_page2)
 
 
