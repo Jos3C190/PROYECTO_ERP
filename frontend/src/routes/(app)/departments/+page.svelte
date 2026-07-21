@@ -25,7 +25,7 @@
   }
 
   function parentName(id: string | null): string {
-    if (!id) return '—';
+    if (!id) return 'Sin padre (raíz)';
     return departments.find((d) => d.id === id)?.name ?? '—';
   }
 
@@ -37,11 +37,8 @@
     formLoading = true; formError = null;
     try {
       const data = { name: fName, description: fDescription || undefined, parent_department_id: fParentId || undefined };
-      if (modalMode === 'create') {
-        await api.departments.create(data);
-      } else if (modalMode === 'edit' && modalDept) {
-        await api.departments.update(modalDept.id, data);
-      }
+      if (modalMode === 'create') { await api.departments.create(data); }
+      else if (modalMode === 'edit' && modalDept) { await api.departments.update(modalDept.id, data); }
       closeModal(); await loadDepartments();
     } catch (err) { formError = err instanceof HttpError ? err.message : 'Error.'; }
     finally { formLoading = false; }
@@ -59,27 +56,61 @@
 <svelte:head><title>Departamentos — ERP System</title></svelte:head>
 
 <div class="p-6 md:p-8">
-  <div class="mb-6 flex items-center justify-between">
-    <div><h1 class="text-2xl font-bold tracking-tight text-foreground">Departamentos</h1><p class="mt-1 text-sm text-foreground-muted">{departments.length} departamento(s)</p></div>
-    <Button onclick={openCreate}>Crear departamento</Button>
+  <div class="mb-8 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-foreground">Departamentos</h1>
+      <p class="mt-1 text-sm text-foreground-muted">{departments.length} departamento(s) en la organización</p>
+    </div>
+    <Button onclick={openCreate}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+      Crear departamento
+    </Button>
   </div>
 
-  {#if error}<div class="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error}</div>{/if}
+  {#if error}
+    <div class="mb-4 animate-fade-scale rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error}</div>
+  {/if}
 
-  {#if loading}<Card><p class="py-8 text-center text-sm text-foreground-muted">Cargando...</p></Card>
-  {:else if departments.length === 0}<Card><p class="py-8 text-center text-sm text-foreground-muted">No hay departamentos.</p></Card>
+  {#if loading}
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {#each Array(6) as _}
+        <div class="h-36 rounded-2xl border border-border skeleton"></div>
+      {/each}
+    </div>
+  {:else if departments.length === 0}
+    <Card class="p-12">
+      <div class="flex flex-col items-center text-center">
+        <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-muted">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-foreground-subtle"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5" /></svg>
+        </div>
+        <p class="text-sm text-foreground-muted">No hay departamentos. Cree uno para empezar.</p>
+        <div class="mt-4"><Button onclick={openCreate}>Crear departamento</Button></div>
+      </div>
+    </Card>
   {:else}
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {#each departments as dept (dept.id)}
-        <Card>
-          <div class="flex items-start justify-between">
-            <div><h3 class="text-base font-semibold text-foreground">{dept.name}</h3><p class="mt-1 text-sm text-foreground-muted">{dept.description ?? 'Sin descripción'}</p>
-              <p class="mt-3 text-xs text-foreground-muted">Padre: <span class="font-medium text-foreground">{parentName(dept.parent_department_id)}</span></p>
+        <Card class="p-5 hover-lift">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-accent/10">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-accent"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5" /></svg>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-foreground">{dept.name}</h3>
+                <p class="text-xs text-foreground-muted">{dept.description ?? 'Sin descripción'}</p>
+              </div>
             </div>
-            <div class="flex flex-col gap-1">
-              <Button variant="ghost" size="sm" onclick={() => openEdit(dept)}>Editar</Button>
-              <Button variant="ghost" size="sm" onclick={() => deleteDept(dept)}>Eliminar</Button>
-            </div>
+          </div>
+
+          <div class="mt-4 flex items-center gap-2 rounded-lg bg-surface-muted/50 px-3 py-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-foreground-subtle"><path d="M15 18l-6-6 6-6" /></svg>
+            <span class="text-xs text-foreground-subtle">{parentName(dept.parent_department_id)}</span>
+          </div>
+
+          <div class="mt-4 flex items-center gap-2 border-t border-border pt-3">
+            <Button variant="ghost" size="sm" onclick={() => openEdit(dept)}>Editar</Button>
+            <Button variant="ghost" size="sm" onclick={() => deleteDept(dept)} class="!text-danger hover:!bg-danger/10">Eliminar</Button>
           </div>
         </Card>
       {/each}
@@ -89,10 +120,10 @@
 
 <Modal open={modalMode !== null} title={modalMode === 'create' ? 'Crear departamento' : 'Editar departamento'} onclose={closeModal}>
   <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
-    {#if formError}<div class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-2 text-sm text-danger">{formError}</div>{/if}
+    {#if formError}<div class="rounded-xl border border-danger/30 bg-danger/10 px-4 py-2.5 text-sm text-danger">{formError}</div>{/if}
     <FormField id="d-name" label="Nombre" bind:value={fName} required placeholder="Ventas" />
     <FormField id="d-desc" label="Descripción" bind:value={fDescription} placeholder="Departamento de ventas" />
-    <FormField id="d-parent" label="Departamento padre" bind:value={fParentId} options={[{ value: '', label: '— Ninguno —' }, ...departments.filter(d => d.id !== modalDept?.id).map(d => ({ value: d.id, label: d.name }))]} />
+    <FormField id="d-parent" label="Departamento padre" bind:value={fParentId} options={[{ value: '', label: '— Ninguno (raíz) —' }, ...departments.filter(d => d.id !== modalDept?.id).map(d => ({ value: d.id, label: d.name }))]} />
     <div class="flex justify-end gap-2 pt-2"><Button variant="secondary" onclick={closeModal}>Cancelar</Button><Button type="submit" disabled={formLoading}>{formLoading ? 'Guardando...' : 'Guardar'}</Button></div>
   </form>
 </Modal>

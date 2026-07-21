@@ -50,12 +50,6 @@
     finally { formLoading = false; }
   }
 
-  async function revokeRole(userId: string, roleId: string) {
-    if (!confirm('¿Revocar este rol del usuario?')) return;
-    try { await api.roles.revoke(userId, roleId); await loadRoles(); }
-    catch (err) { error = err instanceof HttpError ? err.message : 'Error.'; }
-  }
-
   async function deleteRole(r: RoleWithPermissions) {
     if (r.is_system) { alert('Los roles de sistema no pueden eliminarse.'); return; }
     if (!confirm(`¿Eliminar el rol "${r.name}"?`)) return;
@@ -74,28 +68,83 @@
 <svelte:head><title>Roles — ERP System</title></svelte:head>
 
 <div class="p-6 md:p-8">
-  <div class="mb-6 flex items-center justify-between">
-    <div><h1 class="text-2xl font-bold tracking-tight text-foreground">Roles y permisos</h1><p class="mt-1 text-sm text-foreground-muted">{roles.length} rol(es)</p></div>
-    <div class="flex gap-2"><Button variant="secondary" onclick={openAssign}>Asignar rol</Button><Button onclick={openCreate}>Crear rol</Button></div>
+  <div class="mb-8 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-foreground">Roles y permisos</h1>
+      <p class="mt-1 text-sm text-foreground-muted">{roles.length} rol(es) · {allPermissions.length} permisos en catálogo</p>
+    </div>
+    <div class="flex gap-2">
+      <Button variant="secondary" onclick={openAssign}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0z" /><path d="M22 11h-6M19 8v6" /></svg>
+        Asignar rol
+      </Button>
+      <Button onclick={openCreate}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        Crear rol
+      </Button>
+    </div>
   </div>
 
-  {#if error}<div class="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error}</div>{/if}
+  {#if error}
+    <div class="mb-4 animate-fade-scale rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error}</div>
+  {/if}
 
-  {#if loading}<Card><p class="py-8 text-center text-sm text-foreground-muted">Cargando...</p></Card>
+  {#if loading}
+    <div class="grid gap-5 md:grid-cols-2">
+      {#each Array(4) as _}
+        <div class="h-44 rounded-2xl border border-border skeleton"></div>
+      {/each}
+    </div>
   {:else}
-    <div class="grid gap-6 md:grid-cols-2">
+    <div class="grid gap-5 md:grid-cols-2">
       {#each roles as role (role.id)}
-        <Card>
-          <div class="mb-3 flex items-center justify-between">
-            <div><h3 class="text-base font-semibold text-foreground">{role.name}</h3><p class="text-xs text-foreground-muted">{role.description ?? 'Sin descripción'}</p></div>
-            {#if role.is_system}<span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"><span class="h-1.5 w-1.5 rounded-full bg-primary"></span> Sistema</span>{/if}
+        <Card class="p-5 hover-lift">
+          <!-- Header -->
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 flex-none items-center justify-center rounded-xl {role.is_system ? 'gradient-bg' : 'bg-primary/10'}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class={role.is_system ? 'text-white' : 'text-primary'}>
+                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-foreground">{role.name}</h3>
+                <p class="text-xs text-foreground-muted">{role.description ?? 'Sin descripción'}</p>
+              </div>
+            </div>
+            {#if role.is_system}
+              <span class="badge-primary inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                Sistema
+              </span>
+            {/if}
           </div>
-          <div class="flex flex-wrap gap-1.5">
-            {#each role.permissions as perm (perm.code)}<span class="rounded-md bg-surface-muted px-2 py-1 text-xs font-mono text-foreground-muted">{perm.code}</span>{:else}<span class="text-xs text-foreground-muted">Sin permisos</span>{/each}
+
+          <!-- Permissions -->
+          <div class="mt-4">
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-foreground-subtle">
+              {role.permissions.length} permiso(s)
+            </p>
+            <div class="flex flex-wrap gap-1.5">
+              {#each role.permissions as perm (perm.code)}
+                <span class="rounded-lg border border-border bg-surface-muted px-2 py-1 text-xs font-mono text-foreground-muted">{perm.code}</span>
+              {:else}
+                <span class="text-xs italic text-foreground-subtle">Sin permisos asignados</span>
+              {/each}
+            </div>
           </div>
-          <div class="mt-4 flex gap-1 border-t border-border pt-3">
-            <Button variant="ghost" size="sm" onclick={() => openPermissions(role)}>Permisos</Button>
-            {#if !role.is_system}<Button variant="ghost" size="sm" onclick={() => openEdit(role)}>Editar</Button><Button variant="ghost" size="sm" onclick={() => deleteRole(role)}>Eliminar</Button>{/if}
+
+          <!-- Footer -->
+          <div class="mt-5 flex items-center gap-2 border-t border-border pt-4">
+            <Button variant="secondary" size="sm" onclick={() => openPermissions(role)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" /></svg>
+              Permisos
+            </Button>
+            {#if !role.is_system}
+              <Button variant="ghost" size="sm" onclick={() => openEdit(role)}>Editar</Button>
+              <Button variant="ghost" size="sm" onclick={() => deleteRole(role)} class="!text-danger hover:!bg-danger/10">Eliminar</Button>
+            {/if}
           </div>
         </Card>
       {/each}
@@ -106,20 +155,24 @@
 <Modal open={modalMode !== null} title={modalMode === 'create' ? 'Crear rol' : modalMode === 'edit' ? 'Editar rol' : modalMode === 'permissions' ? 'Matriz de permisos' : 'Asignar rol a usuario'} onclose={closeModal} size={modalMode === 'permissions' ? 'lg' : 'md'}>
   {#if modalMode === 'create' || modalMode === 'edit'}
     <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
-      {#if formError}<div class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-2 text-sm text-danger">{formError}</div>{/if}
+      {#if formError}<div class="rounded-xl border border-danger/30 bg-danger/10 px-4 py-2.5 text-sm text-danger">{formError}</div>{/if}
       <FormField id="r-name" label="Nombre del rol" bind:value={fName} required placeholder="GERENTE" />
       <FormField id="r-desc" label="Descripción" bind:value={fDesc} placeholder="Rol de gerencia" />
       <div class="flex justify-end gap-2 pt-2"><Button variant="secondary" onclick={closeModal}>Cancelar</Button><Button type="submit" disabled={formLoading}>{formLoading ? 'Guardando...' : 'Guardar'}</Button></div>
     </form>
   {:else if modalMode === 'permissions' && modalRole}
     <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
-      {#if formError}<div class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-2 text-sm text-danger">{formError}</div>{/if}
-      <p class="text-sm text-foreground-muted">Permiso para el rol <strong>{modalRole.name}</strong></p>
+      {#if formError}<div class="rounded-xl border border-danger/30 bg-danger/10 px-4 py-2.5 text-sm text-danger">{formError}</div>{/if}
+      <p class="text-sm text-foreground-muted">Permiso para el rol <strong class="text-foreground">{modalRole.name}</strong></p>
       {#each permsByModule() as [mod, perms]}
-        <div><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-foreground-muted">{mod}</p>
+        <div class="rounded-xl border border-border bg-surface-muted/50 p-3">
+          <p class="mb-3 text-xs font-bold uppercase tracking-wider text-foreground-subtle">{mod}</p>
           <div class="grid grid-cols-2 gap-2">
             {#each perms as p (p.code)}
-              <label class="flex items-center gap-2 text-sm text-foreground"><input type="checkbox" checked={selectedPerms.has(p.code)} onchange={() => togglePerm(p.code)} class="rounded" /> <span class="font-mono text-xs">{p.code}</span></label>
+              <label class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-surface-hover cursor-pointer">
+                <input type="checkbox" checked={selectedPerms.has(p.code)} onchange={() => togglePerm(p.code)} class="h-4 w-4 rounded border-border text-primary focus:shadow-glow" />
+                <span class="font-mono text-xs">{p.code}</span>
+              </label>
             {/each}
           </div>
         </div>
@@ -128,7 +181,7 @@
     </form>
   {:else if modalMode === 'assign'}
     <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
-      {#if formError}<div class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-2 text-sm text-danger">{formError}</div>{/if}
+      {#if formError}<div class="rounded-xl border border-danger/30 bg-danger/10 px-4 py-2.5 text-sm text-danger">{formError}</div>{/if}
       <FormField id="a-user" label="Usuario" bind:value={fUserId} options={[{value:'',label:'— Seleccionar —'},...users.map(u=>({value:u.id,label:`${u.username} (${u.email})`}))]} />
       <FormField id="a-role" label="Rol" bind:value={fRoleId} options={[{value:'',label:'— Seleccionar —'},...roles.map(r=>({value:r.id,label:r.name}))]} />
       <div class="flex justify-end gap-2 pt-2"><Button variant="secondary" onclick={closeModal}>Cancelar</Button><Button type="submit" disabled={formLoading}>{formLoading ? 'Asignando...' : 'Asignar'}</Button></div>
