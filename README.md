@@ -169,8 +169,8 @@ make test
 | 1b | Users CRUD (list/create/update/deactivate/force-reset/unlock + business rules) | done |
 | 2 | RBAC (roles/permissions engine) | done |
 | 3 | Employees + departments | done |
-| 4 | Audit log (append-only) + UI | next |
-| 5 | App shell (sidebar, dashboard, theme polish) | pending |
+| 4 | Audit log (append-only) + UI | done |
+| 5 | App shell (sidebar, dashboard, theme polish) | next |
 | 6 | Hardening (OWASP sweep, perf, a11y, coverage, docs) | pending |
 
 ---
