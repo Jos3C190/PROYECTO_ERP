@@ -5,6 +5,20 @@ registration.
 """
 
 from app.infrastructure.models.auth import PasswordResetToken, RefreshToken  # noqa: F401
+from app.infrastructure.models.rbac import (  # noqa: F401
+    Permission,
+    Role,
+    RolePermission,
+    UserRole,
+)
 from app.infrastructure.models.user import User  # noqa: F401
 
-__all__: list[str] = ["User", "RefreshToken", "PasswordResetToken"]
+__all__: list[str] = [
+    "User",
+    "RefreshToken",
+    "PasswordResetToken",
+    "Role",
+    "Permission",
+    "RolePermission",
+    "UserRole",
+]
