@@ -170,8 +170,8 @@ make test
 | 2 | RBAC (roles/permissions engine) | done |
 | 3 | Employees + departments | done |
 | 4 | Audit log (append-only) + UI | done |
-| 5 | App shell (sidebar, dashboard, theme polish) | next |
-| 6 | Hardening (OWASP sweep, perf, a11y, coverage, docs) | pending |
+| 5 | App shell (sidebar, dashboard, theme polish) | done |
+| 6 | Hardening (OWASP sweep, perf, a11y, coverage, docs) | next |
 
 ---
 
