@@ -79,10 +79,30 @@ class SqlAlchemyRoleRepository:
         roles = result.scalars().all()
         if not load_permissions:
             return [_role_to_domain(r) for r in roles]
-        out: list[DomainRole] = []
-        for r in roles:
-            perms = await self.get_permissions_for_role(r.id)
-            out.append(_role_to_domain(r, tuple(perms)))
+        # Batch-load permissions for all roles in 2 queries (not N+1).
+        role_ids = [r.id for r in roles]
+        perm_map = await self._batch_load_permissions(role_ids)
+        return [
+            _role_to_domain(r, tuple(perm_map.get(r.id, [])))
+            for r in roles
+        ]
+
+    async def _batch_load_permissions(
+        self, role_ids: list[uuid.UUID]
+    ) -> dict[uuid.UUID, list[DomainPermission]]:
+        """Load permissions for multiple roles in a single JOIN query."""
+        if not role_ids:
+            return {}
+        stmt = (
+            select(RolePermission.role_id, ORMPermission)
+            .join(ORMPermission, ORMPermission.id == RolePermission.permission_id)
+            .where(RolePermission.role_id.in_(role_ids))
+            .order_by(ORMPermission.code)
+        )
+        result = await self._session.execute(stmt)
+        out: dict[uuid.UUID, list[DomainPermission]] = {}
+        for role_id, perm in result.all():
+            out.setdefault(role_id, []).append(_perm_to_domain(perm))
         return out
 
     async def add(self, role: DomainRole) -> DomainRole:
