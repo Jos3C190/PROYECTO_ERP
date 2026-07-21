@@ -75,26 +75,20 @@
 <svelte:head><title>Bitácora — ERP System</title></svelte:head>
 
 <div class="p-6 md:p-8">
-  <div class="mb-6 flex items-center justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight text-foreground">Bitácora</h1>
-      <p class="mt-1 text-sm text-foreground-muted">{meta ? `${meta.total} evento(s) en total` : 'Cargando...'}</p>
-    </div>
-    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-danger"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-    </div>
+  <div class="mb-5 flex items-center justify-between gap-4">
+    <p class="text-sm text-foreground-muted">{meta ? `${meta.total} evento(s)` : 'Cargando...'}</p>
   </div>
 
-  <div class="mb-5 flex flex-wrap items-center gap-3">
-    <select bind:value={actionFilter} onchange={applyFilters} class="rounded-xl border border-border bg-surface px-3.5 py-2 text-sm text-foreground transition-all focus:border-primary focus:shadow-glow focus:outline-none">
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <select bind:value={actionFilter} onchange={applyFilters} class="h-8 rounded-md border border-border bg-surface-muted px-2.5 text-[13px] text-foreground focus:border-primary focus:shadow-glow focus:outline-none">
       <option value="">Todas las acciones</option>
       <option value="LOGIN_SUCCESS">Login exitoso</option><option value="LOGIN_FAILED">Login fallido</option>
       <option value="USER_CREATED">Usuario creado</option><option value="USER_UPDATED">Usuario actualizado</option>
     </select>
-    <select bind:value={statusFilter} onchange={applyFilters} class="rounded-xl border border-border bg-surface px-3.5 py-2 text-sm text-foreground transition-all focus:border-primary focus:shadow-glow focus:outline-none">
+    <select bind:value={statusFilter} onchange={applyFilters} class="h-8 rounded-md border border-border bg-surface-muted px-2.5 text-[13px] text-foreground focus:border-primary focus:shadow-glow focus:outline-none">
       <option value="">Todos los estados</option><option value="success">Éxito</option><option value="failure">Fallo</option>
     </select>
-    <select bind:value={resourceFilter} onchange={applyFilters} class="rounded-xl border border-border bg-surface px-3.5 py-2 text-sm text-foreground transition-all focus:border-primary focus:shadow-glow focus:outline-none">
+    <select bind:value={resourceFilter} onchange={applyFilters} class="h-8 rounded-md border border-border bg-surface-muted px-2.5 text-[13px] text-foreground focus:border-primary focus:shadow-glow focus:outline-none">
       <option value="">Todos los recursos</option><option value="auth">Auth</option><option value="user">Usuario</option>
     </select>
   </div>

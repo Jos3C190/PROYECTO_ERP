@@ -13,6 +13,7 @@
   let page = $state(1);
   let size = $state(10);
   let actionLoading = $state<string | null>(null);
+  let statusFilter = $state('');
 
   // Modal state
   let modalMode = $state<'create' | 'edit' | 'reset' | 'detail' | null>(null);
@@ -32,7 +33,12 @@
     error = null;
     try {
       const result = await api.users.list({ page, size, search: globalSearch.query || undefined });
-      users = result.items;
+      let items = result.items;
+      // Filtro por estado en cliente
+      if (statusFilter === 'active') items = items.filter(u => u.is_active && !u.locked_until);
+      else if (statusFilter === 'inactive') items = items.filter(u => !u.is_active);
+      else if (statusFilter === 'superuser') items = items.filter(u => u.is_superuser);
+      users = items;
       meta = result.meta;
     } catch (err) {
       if (err instanceof HttpError) error = err.message;
@@ -113,15 +119,19 @@
 <svelte:head><title>Usuarios — ERP System</title></svelte:head>
 
 <div class="p-6 md:p-8">
-  <div class="mb-6 flex items-center justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight text-foreground">Usuarios</h1>
-      <p class="mt-1 text-sm text-foreground-muted">{meta ? `${meta.total} usuario(s)` : 'Cargando...'}</p>
-    </div>
-    <div class="flex items-center gap-3">
+  <div class="mb-5 flex items-center justify-between gap-4">
+    <p class="text-sm text-foreground-muted">{meta ? `${meta.total} usuario(s)` : 'Cargando...'}</p>
+    <div class="flex items-center gap-2">
+      <select bind:value={statusFilter} onchange={() => { page = 1; loadUsers(); }}
+        class="h-8 rounded-md border border-border bg-surface-muted px-2.5 text-[13px] text-foreground focus:border-primary focus:shadow-glow focus:outline-none">
+        <option value="">Todos</option>
+        <option value="active">Activos</option>
+        <option value="inactive">Inactivos</option>
+        <option value="superuser">Super admins</option>
+      </select>
       <Button onclick={openCreate}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-        Crear usuario
+        Crear
       </Button>
     </div>
   </div>

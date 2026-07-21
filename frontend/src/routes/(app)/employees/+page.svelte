@@ -13,6 +13,8 @@
   let error = $state<string | null>(null);
   let page = $state(1);
   let size = $state(10);
+  let deptFilter = $state('');
+  let statusFilter = $state('');
   let actionLoading = $state<string | null>(null);
 
   let modalMode = $state<'create' | 'edit' | 'detail' | 'link' | null>(null);
@@ -31,7 +33,10 @@
   async function loadData() {
     loading = true; error = null;
     try {
-      const [empResult, deptResult] = await Promise.all([api.employees.list({ page, size, search: globalSearch.query || undefined }), api.departments.list()]);
+      const [empResult, deptResult] = await Promise.all([
+        api.employees.list({ page, size, search: globalSearch.query || undefined, department_id: deptFilter || undefined, status: statusFilter || undefined }),
+        api.departments.list()
+      ]);
       employees = empResult.items; meta = empResult.meta; departments = deptResult;
     } catch (err) { error = err instanceof HttpError ? err.message : 'Error.'; }
     finally { loading = false; }
@@ -88,9 +93,24 @@
 <svelte:head><title>Empleados — ERP System</title></svelte:head>
 
 <div class="p-6 md:p-8">
-  <div class="mb-6 flex items-center justify-between gap-4">
-    <div><h1 class="text-2xl font-bold tracking-tight text-foreground">Empleados</h1><p class="mt-1 text-sm text-foreground-muted">{meta ? `${meta.total} empleado(s)` : 'Cargando...'}</p></div>
-    <div class="flex items-center gap-3"><Button onclick={openCreate}>Crear empleado</Button></div>
+  <div class="mb-5 flex items-center justify-between gap-4">
+    <p class="text-sm text-foreground-muted">{meta ? `${meta.total} empleado(s)` : 'Cargando...'}</p>
+    <div class="flex items-center gap-2">
+      <select bind:value={deptFilter} onchange={() => { page = 1; loadData(); }}
+        class="h-8 rounded-md border border-border bg-surface-muted px-2.5 text-[13px] text-foreground focus:border-primary focus:shadow-glow focus:outline-none">
+        <option value="">Todos los deptos</option>
+        {#each departments as d (d.id)}<option value={d.id}>{d.name}</option>{/each}
+      </select>
+      <select bind:value={statusFilter} onchange={() => { page = 1; loadData(); }}
+        class="h-8 rounded-md border border-border bg-surface-muted px-2.5 text-[13px] text-foreground focus:border-primary focus:shadow-glow focus:outline-none">
+        <option value="">Todos</option>
+        <option value="activo">Activos</option>
+        <option value="inactivo">Inactivos</option>
+        <option value="vacaciones">Vacaciones</option>
+        <option value="baja">Baja</option>
+      </select>
+      <Button onclick={openCreate}>Crear</Button>
+    </div>
   </div>
 
   {#if error}<div class="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error}</div>{/if}

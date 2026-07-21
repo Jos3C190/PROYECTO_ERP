@@ -51,13 +51,20 @@
     catch (err) { error = err instanceof HttpError ? err.message : 'Error.'; }
   }
 
+  let levelFilter = $state('');
+
   let filteredDepartments = $derived.by(() => {
     const q = globalSearch.query.toLowerCase().trim();
-    if (!q) return departments;
-    return departments.filter(d =>
-      d.name.toLowerCase().includes(q) ||
-      (d.description ?? '').toLowerCase().includes(q)
-    );
+    let result = departments;
+    if (q) {
+      result = result.filter(d =>
+        d.name.toLowerCase().includes(q) ||
+        (d.description ?? '').toLowerCase().includes(q)
+      );
+    }
+    if (levelFilter === 'root') result = result.filter(d => !d.parent_department_id);
+    else if (levelFilter === 'child') result = result.filter(d => !!d.parent_department_id);
+    return result;
   });
 
   $effect(() => { loadDepartments(); });
@@ -66,15 +73,19 @@
 <svelte:head><title>Departamentos — ERP System</title></svelte:head>
 
 <div class="p-6 md:p-8">
-  <div class="mb-8 flex items-center justify-between">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight text-foreground">Departamentos</h1>
-      <p class="mt-1 text-sm text-foreground-muted">{departments.length} departamento(s) en la organización</p>
+  <div class="mb-5 flex items-center justify-between gap-4">
+    <p class="text-sm text-foreground-muted">{filteredDepartments.length} departamento(s)</p>
+    <div class="flex items-center gap-2">
+      <select bind:value={levelFilter} class="h-8 rounded-md border border-border bg-surface-muted px-2.5 text-[13px] text-foreground focus:border-primary focus:shadow-glow focus:outline-none">
+        <option value="">Todos</option>
+        <option value="root">Raíz</option>
+        <option value="child">Con padre</option>
+      </select>
+      <Button size="sm" onclick={openCreate}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        Crear
+      </Button>
     </div>
-    <Button onclick={openCreate}>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-      Crear departamento
-    </Button>
   </div>
 
   {#if error}

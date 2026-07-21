@@ -3,7 +3,8 @@
   import { page } from '$app/state';
   import { session } from '$lib/stores/session.svelte';
   import { permissions } from '$lib/stores/permissions.svelte';
-  import { search } from '$lib/stores/search.svelte';
+  import { search as globalSearch } from '$lib/stores/search.svelte';
+  import { routeTitle } from '$lib/stores/route-titles';
   import { api } from '$lib/api/client';
   import Sidebar from '$lib/components/ui/Sidebar.svelte';
   import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
@@ -18,12 +19,12 @@
   let sidebarCollapsed = $state(false);
   let mobileOpen = $state(false);
   let loading = $state(false);
-  let searchInput = $state(search.query);
+  let searchInput = $state(globalSearch.query);
 
-  // Rutas que soportan búsqueda global
   const SEARCHABLE_ROUTES = ['/users', '/employees', '/roles', '/departments', '/audit-log'];
 
   let showSearch = $derived(SEARCHABLE_ROUTES.includes(page.url.pathname));
+  let title = $derived(routeTitle(page.url.pathname));
 
   async function handleLogout() {
     loading = true;
@@ -41,24 +42,21 @@
   function onSearchInput(e: Event) {
     const v = (e.target as HTMLInputElement).value;
     searchInput = v;
-    search.setDebounced(v, 300);
+    globalSearch.setDebounced(v, 300);
   }
 
-  // Clear search when route changes
   $effect(() => {
     const _path = page.url.pathname;
-    search.clear();
+    globalSearch.clear();
     searchInput = '';
   });
 </script>
 
 <div class="flex h-screen overflow-hidden bg-surface">
-  <!-- Desktop sidebar -->
   <div class="hidden md:flex">
     <Sidebar collapsed={sidebarCollapsed} />
   </div>
 
-  <!-- Mobile drawer -->
   {#if mobileOpen}
     <div class="fixed inset-0 z-40 md:hidden">
       <div class="absolute inset-0 bg-black/50" onclick={closeMobile} role="presentation"></div>
@@ -68,38 +66,28 @@
     </div>
   {/if}
 
-  <!-- Main content -->
   <div class="flex flex-1 flex-col overflow-hidden">
     <header class="flex h-14 flex-none items-center justify-between gap-3 border-b border-border bg-surface px-4 md:px-6">
-      <!-- Left: mobile menu + collapse + search -->
+      <!-- Left: menu + collapse + breadcrumb + search -->
       <div class="flex flex-1 items-center gap-2">
-        <button
-          type="button"
-          onclick={() => (mobileOpen = true)}
-          class="flex h-8 w-8 flex-none items-center justify-center rounded-md text-foreground-muted hover:bg-surface-hover hover:text-foreground md:hidden"
-          aria-label="Abrir menú"
-        >
+        <button type="button" onclick={() => (mobileOpen = true)}
+          class="flex h-8 w-8 flex-none items-center justify-center rounded-md text-foreground-muted hover:bg-surface-hover hover:text-foreground md:hidden" aria-label="Abrir menú">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
         </button>
-        <button
-          type="button"
-          onclick={() => (sidebarCollapsed = !sidebarCollapsed)}
-          class="hidden h-8 w-8 flex-none items-center justify-center rounded-md text-foreground-muted hover:bg-surface-hover hover:text-foreground md:flex"
-          aria-label="Colapsar sidebar"
-        >
+        <button type="button" onclick={() => (sidebarCollapsed = !sidebarCollapsed)}
+          class="hidden h-8 w-8 flex-none items-center justify-center rounded-md text-foreground-muted hover:bg-surface-hover hover:text-foreground md:flex" aria-label="Colapsar sidebar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="transition-transform duration-200 {sidebarCollapsed ? 'rotate-180' : ''}"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
 
+        {#if title}
+          <span class="hidden text-[15px] font-semibold text-foreground sm:block">{title}</span>
+        {/if}
+
         {#if showSearch}
-          <div class="relative flex-1 max-w-md">
-            <svg class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-subtle" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
-            <input
-              type="text"
-              value={searchInput}
-              oninput={onSearchInput}
-              placeholder="Buscar..."
-              class="h-8 w-full rounded-md border border-border bg-surface-muted pl-8 pr-3 text-[13px] text-foreground placeholder:text-foreground-subtle focus:border-primary focus:bg-surface focus:shadow-glow focus:outline-none"
-            />
+          <div class="relative ml-2 flex-1 max-w-xs">
+            <svg class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-subtle" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+            <input type="text" value={searchInput} oninput={onSearchInput} placeholder="Buscar..."
+              class="h-8 w-full rounded-md border border-border bg-surface-muted pl-8 pr-3 text-[13px] text-foreground placeholder:text-foreground-subtle focus:border-primary focus:bg-surface focus:shadow-glow focus:outline-none" />
           </div>
         {/if}
       </div>

@@ -63,14 +63,29 @@
     selectedPerms = new Set(selectedPerms);
   }
 
+  let systemFilter = $state('');
+  let moduleFilter = $state('');
+
   let filteredRoles = $derived.by(() => {
     const q = globalSearch.query.toLowerCase().trim();
-    if (!q) return roles;
-    return roles.filter(r =>
-      r.name.toLowerCase().includes(q) ||
-      r.permissions.some(p => p.code.toLowerCase().includes(q)) ||
-      (r.description ?? '').toLowerCase().includes(q)
-    );
+    let result = roles;
+    if (q) {
+      result = result.filter(r =>
+        r.name.toLowerCase().includes(q) ||
+        r.permissions.some(p => p.code.toLowerCase().includes(q)) ||
+        (r.description ?? '').toLowerCase().includes(q)
+      );
+    }
+    if (systemFilter === 'system') result = result.filter(r => r.is_system);
+    else if (systemFilter === 'custom') result = result.filter(r => !r.is_system);
+    if (moduleFilter) result = result.filter(r => r.permissions.some(p => (p.module ?? '') === moduleFilter));
+    return result;
+  });
+
+  let permModules = $derived.by(() => {
+    const s = new Set<string>();
+    for (const p of allPermissions) { if (p.module) s.add(p.module); }
+    return [...s].sort();
   });
 
   $effect(() => { loadRoles(); });
@@ -79,19 +94,22 @@
 <svelte:head><title>Roles — ERP System</title></svelte:head>
 
 <div class="p-6 md:p-8">
-  <div class="mb-8 flex items-center justify-between">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight text-foreground">Roles y permisos</h1>
-      <p class="mt-1 text-sm text-foreground-muted">{roles.length} rol(es) · {allPermissions.length} permisos en catálogo</p>
-    </div>
-    <div class="flex gap-2">
-      <Button variant="secondary" onclick={openAssign}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0z" /><path d="M22 11h-6M19 8v6" /></svg>
-        Asignar rol
-      </Button>
-      <Button onclick={openCreate}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-        Crear rol
+  <div class="mb-5 flex items-center justify-between gap-4">
+    <p class="text-sm text-foreground-muted">{filteredRoles.length} rol(es) · {allPermissions.length} permisos</p>
+    <div class="flex items-center gap-2">
+      <select bind:value={systemFilter} class="h-8 rounded-md border border-border bg-surface-muted px-2.5 text-[13px] text-foreground focus:border-primary focus:shadow-glow focus:outline-none">
+        <option value="">Todos</option>
+        <option value="system">Sistema</option>
+        <option value="custom">Personalizados</option>
+      </select>
+      <select bind:value={moduleFilter} class="h-8 rounded-md border border-border bg-surface-muted px-2.5 text-[13px] text-foreground focus:border-primary focus:shadow-glow focus:outline-none">
+        <option value="">Todos los módulos</option>
+        {#each permModules as m (m)}<option value={m}>{m}</option>{/each}
+      </select>
+      <Button variant="secondary" size="sm" onclick={openAssign}>Asignar</Button>
+      <Button size="sm" onclick={openCreate}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        Crear
       </Button>
     </div>
   </div>
