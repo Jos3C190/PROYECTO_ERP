@@ -1,4 +1,5 @@
 """Port interfaces (re-export barrel)."""
+from app.domain.ports.audit_repository import AuditRepository
 from app.domain.ports.department_repository import DepartmentRepository
 from app.domain.ports.employee_repository import EmployeeRepository
 from app.domain.ports.permission_repository import PermissionRepository
@@ -16,4 +17,5 @@ __all__ = [
     "PermissionRepository",
     "DepartmentRepository",
     "EmployeeRepository",
+    "AuditRepository",
 ]

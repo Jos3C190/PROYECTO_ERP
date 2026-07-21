@@ -1,0 +1,45 @@
+"""Port: AuditRepository — append-only (add + list, no update/delete)."""
+from __future__ import annotations
+
+import uuid
+from collections.abc import Sequence
+from datetime import datetime
+from typing import Protocol
+
+from app.domain.entities.audit import AuditLog
+
+
+class AuditRepository(Protocol):
+    """Append-only repository. Only add and list are exposed — never update
+    or delete. This is the architectural enforcement of the append-only rule,
+    complementing the lack of UPDATE/DELETE endpoints."""
+
+    async def add(self, log: AuditLog) -> AuditLog: ...
+
+    async def list(
+        self,
+        *,
+        limit: int = 50,
+        cursor_created_at: datetime | None = None,
+        cursor_id: uuid.UUID | None = None,
+        user_id: uuid.UUID | None = None,
+        action: str | None = None,
+        resource_type: str | None = None,
+        resource_id: str | None = None,
+        status: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> tuple[Sequence[AuditLog], bool]:
+        """Return (logs, has_more). Keyset pagination over (created_at DESC, id DESC)."""
+
+    async def count(
+        self,
+        *,
+        user_id: uuid.UUID | None = None,
+        action: str | None = None,
+        resource_type: str | None = None,
+        resource_id: str | None = None,
+        status: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> int: ...
