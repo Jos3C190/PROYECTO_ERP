@@ -124,23 +124,24 @@ Full layering rules in `docs/architecture.md`.
 
 ---
 
-## Security posture (Phase 0)
+## Security posture
 
-Already in place:
+Implemented and verified (OWASP A01-A10, see `docs/architecture.md`):
 
-- Argon2id-ready password hashing interface (wired in Phase 1).
-- Security headers middleware: `X-Content-Type-Options`, `X-Frame-Options`,
-  `Referrer-Policy`, `Strict-Transport-Security` (prod), a conservative CSP.
+- Argon2id password hashing (configurable time/memory cost).
+- JWT access tokens (15 min) + refresh token rotation with reuse detection
+  (revokes all sessions on reuse).
+- Progressive lockout (5 failed attempts → backoff).
+- Rate limiting: login 10/min, refresh 30/min, reset 5/min per IP.
+- `require_permission("code")` dependency on every sensitive endpoint
+  (deny-by-default, superuser shortcut).
+- Security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`,
+  `Permissions-Policy`, conservative CSP, `Strict-Transport-Security` (prod).
 - CORS restricted to explicit origins (never `*` with credentials).
 - Debug mode off in prod profile; generic error responses to clients.
 - `.env`-based secrets; no hardcoded credentials in source.
-- Health endpoints separated: `/health/live` (process) and `/health/ready`
-  (DB reachable), useful for orchestrators.
-
-Coming in **Phase 1+**: JWT (access + rotating refresh), rate limiting,
-progressive lockout, refresh-token reuse detection, RBAC engine, audit log.
-
-See `docs/architecture.md` for the OWASP mapping planned per phase.
+- Audit log append-only (no UPDATE/DELETE endpoints).
+- Structured logging (JSON in prod); security events in audit log; no secret logging.
 
 ---
 
