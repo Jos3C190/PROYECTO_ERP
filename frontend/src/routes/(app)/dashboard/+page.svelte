@@ -140,7 +140,7 @@
     <Card class="lg:col-span-2 p-5">
       <h3 class="mb-4 text-sm font-semibold text-foreground">Mi perfil</h3>
       <div class="flex items-center gap-3 mb-5">
-        <div class="flex h-14 w-14 items-center justify-center rounded-2xl gradient-bg text-2xl font-bold text-primary-foreground shadow-soft">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-foreground text-lg font-bold text-surface">
           {session.user?.username?.[0]?.toUpperCase() ?? '?'}
         </div>
         <div>

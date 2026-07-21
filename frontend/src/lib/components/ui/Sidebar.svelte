@@ -31,8 +31,8 @@
   aria-label="Navegación principal"
 >
   <div class="flex items-center gap-3 border-b border-border px-4 py-4 {collapsed ? 'justify-center' : ''}">
-    <div class="flex h-9 w-9 flex-none items-center justify-center rounded-xl gradient-bg text-primary-foreground shadow-soft">
-      <span class="text-lg font-bold">E</span>
+    <div class="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-foreground text-surface">
+      <span class="text-sm font-bold">E</span>
     </div>
     {#if !collapsed}
       <div class="min-w-0">

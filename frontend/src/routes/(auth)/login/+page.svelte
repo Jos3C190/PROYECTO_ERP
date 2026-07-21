@@ -61,10 +61,10 @@
       <div class="absolute bottom-10 left-10 h-56 w-56 rounded-full bg-accent/30 blur-2xl"></div>
 
       <div class="relative z-10 flex items-center gap-3">
-        <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
-          <span class="text-xl font-bold text-white">E</span>
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+          <span class="text-lg font-bold text-white">E</span>
         </div>
-        <span class="text-lg font-bold text-white">ERP System</span>
+        <span class="text-base font-semibold text-white">ERP System</span>
       </div>
 
       <div class="relative z-10">
@@ -90,8 +90,8 @@
   <div class="flex w-full items-center justify-center bg-surface px-6 lg:w-1/2">
     <div class="w-full max-w-sm">
       <div class="mb-8 text-center lg:hidden">
-        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl gradient-bg shadow-soft">
-          <span class="text-xl font-bold text-white">E</span>
+        <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-foreground text-surface">
+          <span class="text-lg font-bold">E</span>
         </div>
         <h1 class="text-xl font-bold text-foreground">ERP System</h1>
       </div>
@@ -135,13 +135,13 @@
         </div>
 
         <button type="submit" disabled={submitting}
-          class="flex w-full items-center justify-center gap-2 rounded-xl gradient-bg py-3 text-sm font-semibold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lifted active:scale-95 disabled:opacity-50 disabled:pointer-events-none focus-visible:shadow-glow">
+          class="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-2.5 text-sm font-medium text-surface shadow-soft transition-all duration-150 hover:bg-foreground-muted active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none focus-visible:shadow-glow">
           {#if submitting}
-            <svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="20" /></svg>
+            <svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="20" /></svg>
             Ingresando...
           {:else}
             Iniciar sesión
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           {/if}
         </button>
       </form>
