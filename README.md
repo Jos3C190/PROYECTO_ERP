@@ -167,8 +167,8 @@ make test
 | 0 | Cimientos (this repo) | done |
 | 1a | Auth core (login/JWT/refresh rotation/logout/me + seed + frontend login) | done |
 | 1b | Users CRUD (list/create/update/deactivate/force-reset/unlock + business rules) | done |
-| 2 | RBAC (roles/permissions engine) | next |
-| 3 | Employees + departments | pending |
+| 2 | RBAC (roles/permissions engine) | done |
+| 3 | Employees + departments | next |
 | 4 | Audit log (append-only) + UI | pending |
 | 5 | App shell (sidebar, dashboard, theme polish) | pending |
 | 6 | Hardening (OWASP sweep, perf, a11y, coverage, docs) | pending |
