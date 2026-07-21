@@ -42,8 +42,8 @@
   function goToPage(p: number) { if (p < 1 || (meta && p > meta.pages)) return; page = p; loadData(); }
   function deptName(id: string | null): string { if (!id) return '—'; return departments.find((d) => d.id === id)?.name ?? '—'; }
   function statusBadge(s: string): string {
-    const m: Record<string, string> = { activo: 'bg-success/10 text-success', inactivo: 'bg-foreground-muted/10 text-foreground-muted', vacaciones: 'bg-warning/10 text-warning', baja: 'bg-danger/10 text-danger' };
-    return m[s] ?? 'bg-foreground-muted/10 text-foreground-muted';
+    const m: Record<string, string> = { activo: 'badge-success', inactivo: 'badge-neutral', vacaciones: 'badge-warning', baja: 'badge-danger' };
+    return m[s] ?? 'badge-neutral';
   }
 
   function openCreate() { modalMode = 'create'; modalEmp = null; formError = null; fCode = ''; fFirst = ''; fLast = ''; fDept = ''; fPosition = ''; fPhone = ''; fAddress = ''; fDocId = ''; fStatus = 'activo'; fHireDate = ''; }
@@ -109,7 +109,7 @@
               <td class="px-4 py-3"><button class="font-medium text-foreground hover:text-primary" onclick={() => openDetail(emp)}>{emp.first_name} {emp.last_name}</button></td>
               <td class="px-4 py-3 text-foreground-muted">{deptName(emp.department_id)}</td>
               <td class="px-4 py-3 text-foreground-muted">{emp.position ?? '—'}</td>
-              <td class="px-4 py-3"><span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium {statusBadge(emp.status)}"><span class="h-1.5 w-1.5 rounded-full bg-current"></span> {emp.status}</span></td>
+              <td class="px-4 py-3"><span class="{statusBadge(emp.status)} inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium"><span class="h-1.5 w-1.5 rounded-full bg-current"></span> {emp.status}</span></td>
               <td class="px-4 py-3">{#if emp.user_id}<span class="text-xs text-success">Vinculado</span>{:else}<span class="text-xs text-foreground-muted">—</span>{/if}</td>
               <td class="px-4 py-3"><div class="flex items-center justify-end gap-1">
                 <Button variant="ghost" size="sm" onclick={() => openEdit(emp)}>Editar</Button>

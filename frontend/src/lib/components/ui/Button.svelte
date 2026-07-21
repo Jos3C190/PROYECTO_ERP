@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+  type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
   type Size = 'sm' | 'md' | 'lg';
 
   interface Props {
@@ -24,20 +24,20 @@
     class: className = ''
   }: Props = $props();
 
-  const base =
-    'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const base = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none focus-visible:shadow-glow';
 
   const variants: Record<Variant, string> = {
-    primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
-    secondary: 'bg-surface-muted text-foreground border border-border hover:bg-surface',
-    ghost: 'bg-transparent text-foreground hover:bg-surface-muted',
-    danger: 'bg-danger text-white hover:bg-danger/90'
+    primary: 'bg-gradient-to-br from-primary to-primary-hover text-primary-foreground shadow-soft hover:shadow-lifted hover:-translate-y-0.5',
+    secondary: 'bg-surface-elevated text-foreground border border-border hover:bg-surface-hover hover:border-border-strong shadow-soft',
+    ghost: 'bg-transparent text-foreground-muted hover:bg-surface-hover hover:text-foreground',
+    danger: 'bg-gradient-to-br from-danger to-danger text-danger-foreground shadow-soft hover:shadow-lifted hover:-translate-y-0.5',
+    success: 'bg-gradient-to-br from-success to-success text-success-foreground shadow-soft hover:shadow-lifted hover:-translate-y-0.5'
   };
 
   const sizes: Record<Size, string> = {
-    sm: 'h-8 px-3 text-sm',
-    md: 'h-10 px-4 text-sm',
-    lg: 'h-12 px-6 text-base'
+    sm: 'h-8 px-3 text-xs gap-1.5',
+    md: 'h-10 px-4 text-sm gap-2',
+    lg: 'h-12 px-6 text-base gap-2'
   };
 
   const classes = $derived(`${base} ${variants[variant]} ${sizes[size]} ${className}`);

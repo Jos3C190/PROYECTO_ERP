@@ -11,7 +11,7 @@ describe('Button (via host)', () => {
   it('applies the primary variant by default', () => {
     render(ButtonHost, { props: { label: 'Click' } });
     const btn = screen.getByRole('button', { name: 'Click' });
-    expect(btn.className).toContain('bg-primary');
+    expect(btn.className).toContain('from-primary');
   });
 
   it('disables when disabled prop is true', () => {
@@ -22,6 +22,6 @@ describe('Button (via host)', () => {
   it('applies the danger variant', () => {
     render(ButtonHost, { props: { label: 'Eliminar', variant: 'danger' } });
     const btn = screen.getByRole('button', { name: 'Eliminar' });
-    expect(btn.className).toContain('bg-danger');
+    expect(btn.className).toContain('from-danger');
   });
 });

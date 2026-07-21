@@ -126,8 +126,11 @@
     </div>
     <div class="flex items-center gap-3">
       <input type="text" placeholder="Buscar..." bind:value={search} oninput={onSearchInput}
-        class="w-56 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
-      <Button onclick={openCreate}>Crear usuario</Button>
+        class="w-56 rounded-xl border border-border bg-surface px-3.5 py-2 text-sm text-foreground placeholder:text-foreground-subtle transition-all focus:border-primary focus:shadow-glow focus:outline-none" />
+      <Button onclick={openCreate}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        Crear usuario
+      </Button>
     </div>
   </div>
 
@@ -159,11 +162,11 @@
                 <td class="px-4 py-3 text-foreground-muted">{user.email}</td>
                 <td class="px-4 py-3">
                   {#if user.locked_until}
-                    <span class="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning"><span class="h-1.5 w-1.5 rounded-full bg-warning"></span> Bloqueado</span>
+                    <span class="badge-warning inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium"><span class="h-1.5 w-1.5 rounded-full bg-warning"></span> Bloqueado</span>
                   {:else if user.is_active}
-                    <span class="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success"><span class="h-1.5 w-1.5 rounded-full bg-success"></span> Activo</span>
+                    <span class="badge-success inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium"><span class="h-1.5 w-1.5 rounded-full bg-success"></span> Activo</span>
                   {:else}
-                    <span class="inline-flex items-center gap-1 rounded-full bg-foreground-muted/10 px-2 py-0.5 text-xs font-medium text-foreground-muted"><span class="h-1.5 w-1.5 rounded-full bg-foreground-muted"></span> Inactivo</span>
+                    <span class="badge-neutral inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium"><span class="h-1.5 w-1.5 rounded-full bg-foreground-muted"></span> Inactivo</span>
                   {/if}
                 </td>
                 <td class="px-4 py-3 text-foreground-muted">{user.is_superuser ? 'Super Admin' : 'Usuario'}</td>

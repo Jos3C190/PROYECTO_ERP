@@ -30,31 +30,36 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
-  <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-20" role="presentation" onclick={() => onclose?.()}>
+  <div
+    class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-16"
+    style="background: rgb(2 6 23 / 0.6); backdrop-filter: blur(8px);"
+    role="presentation"
+    onclick={() => onclose?.()}
+  >
     <div
-      class="w-full {sizes[size]} rounded-2xl border border-border bg-surface shadow-xl"
+      class="w-full {sizes[size]} animate-fade-scale rounded-3xl border border-border bg-surface-elevated shadow-floating"
       role="dialog"
       aria-modal="true"
       aria-label={title}
       onclick={(e) => e.stopPropagation()}
       tabindex="-1"
     >
-      <div class="flex items-center justify-between border-b border-border px-5 py-3">
-        <h2 class="text-base font-semibold text-foreground">{title}</h2>
+      <div class="flex items-center justify-between border-b border-border px-6 py-4">
+        <h2 class="text-lg font-bold text-foreground">{title}</h2>
         <button
           type="button"
           onclick={() => onclose?.()}
-          class="rounded-lg p-1.5 text-foreground-muted hover:bg-surface-muted hover:text-foreground"
+          class="flex h-8 w-8 items-center justify-center rounded-lg text-foreground-muted transition-colors hover:bg-surface-hover hover:text-foreground"
           aria-label="Cerrar"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
         </button>
       </div>
-      <div class="px-5 py-4">
+      <div class="px-6 py-5">
         {@render children()}
       </div>
       {#if footer}
-        <div class="flex items-center justify-end gap-2 border-t border-border px-5 py-3">
+        <div class="flex items-center justify-end gap-2 border-t border-border bg-surface-muted/50 px-6 py-3 rounded-b-3xl">
           {@render footer()}
         </div>
       {/if}

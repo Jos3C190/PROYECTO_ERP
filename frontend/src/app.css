@@ -3,39 +3,83 @@
 @tailwind utilities;
 
 /*
- * Design tokens (Phase 0 minimal). Full design system in docs/design-system.md (Phase 5).
- * Values are RGB triplets so Tailwind's <alpha-value> syntax can apply opacity.
+ * Design tokens — "Nimbus" identity.
+ * Modern ERP palette: deep indigo primary, teal accent, warm neutrals.
+ * Light: crisp white with subtle blue tint. Dark: deep slate with glow.
+ * Values are RGB triplets for Tailwind alpha compatibility.
  */
 :root,
 [data-theme='light'] {
   --surface: 255 255 255;
-  --surface-muted: 247 248 250;
-  --border: 226 229 237;
-  --foreground: 17 24 39;
-  --foreground-muted: 90 100 116;
-  --primary: 37 99 235;
+  --surface-elevated: 255 255 255;
+  --surface-muted: 248 250 252;
+  --surface-hover: 241 245 249;
+  --border: 226 232 240;
+  --border-strong: 203 213 225;
+  --foreground: 15 23 42;
+  --foreground-muted: 100 116 139;
+  --foreground-subtle: 148 163 184;
+  --primary: 99 102 241;
+  --primary-hover: 79 70 229;
   --primary-foreground: 255 255 255;
+  --primary-glow: 99 102 241;
   --accent: 14 165 233;
-  --danger: 220 38 38;
-  --success: 22 163 74;
-  --warning: 217 119 6;
-
+  --accent-foreground: 255 255 255;
+  --danger: 239 68 68;
+  --danger-foreground: 255 255 255;
+  --danger-glow: 239 68 68;
+  --success: 16 185 129;
+  --success-foreground: 255 255 255;
+  --warning: 245 158 11;
+  --warning-foreground: 255 255 255;
+  --gradient-primary: linear-gradient(135deg, rgb(99 102 241) 0%, rgb(139 92 246) 50%, rgb(168 85 247) 100%);
+  --gradient-hero: linear-gradient(135deg, rgb(99 102 241) 0%, rgb(14 165 233) 100%);
+  --gradient-success: linear-gradient(135deg, rgb(16 185 129) 0%, rgb(5 150 105) 100%);
+  --gradient-danger: linear-gradient(135deg, rgb(239 68 68) 0%, rgb(220 38 38) 100%);
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.07), 0 2px 4px -2px rgb(15 23 42 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.05);
+  --shadow-xl: 0 20px 25px -5px rgb(15 23 42 / 0.1), 0 8px 10px -6px rgb(15 23 42 / 0.06);
+  --shadow-glow: 0 0 0 3px rgb(99 102 241 / 0.15);
+  --glass-bg: 255 255 255;
+  --glass-border: 226 232 240;
   color-scheme: light;
 }
 
 [data-theme='dark'] {
-  --surface: 14 17 25;
-  --surface-muted: 22 26 37;
-  --border: 38 44 60;
-  --foreground: 233 237 244;
-  --foreground-muted: 156 166 184;
-  --primary: 96 165 250;
-  --primary-foreground: 8 12 20;
+  --surface: 2 6 23;
+  --surface-elevated: 15 23 42;
+  --surface-muted: 15 23 42;
+  --surface-hover: 30 41 59;
+  --border: 30 41 59;
+  --border-strong: 51 65 85;
+  --foreground: 241 245 249;
+  --foreground-muted: 148 163 184;
+  --foreground-subtle: 100 116 139;
+  --primary: 129 140 248;
+  --primary-hover: 99 102 241;
+  --primary-foreground: 2 6 23;
+  --primary-glow: 129 140 248;
   --accent: 56 189 248;
+  --accent-foreground: 2 6 23;
   --danger: 248 113 113;
-  --success: 74 222 128;
+  --danger-foreground: 2 6 23;
+  --danger-glow: 248 113 113;
+  --success: 52 211 153;
+  --success-foreground: 2 6 23;
   --warning: 251 191 36;
-
+  --warning-foreground: 2 6 23;
+  --gradient-primary: linear-gradient(135deg, rgb(129 140 248) 0%, rgb(167 139 250) 50%, rgb(192 132 252) 100%);
+  --gradient-hero: linear-gradient(135deg, rgb(129 140 248) 0%, rgb(56 189 248) 100%);
+  --gradient-success: linear-gradient(135deg, rgb(52 211 153) 0%, rgb(16 185 129) 100%);
+  --gradient-danger: linear-gradient(135deg, rgb(248 113 113) 0%, rgb(239 68 68) 100%);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 3px 0 rgb(0 0 0 / 0.2);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+  --shadow-glow: 0 0 0 3px rgb(129 140 248 / 0.2);
+  --glass-bg: 15 23 42;
+  --glass-border: 30 41 59;
   color-scheme: dark;
 }
 
@@ -50,13 +94,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Visible focus for keyboard users (accessibility). */
+/* Focus ring — primary glow */
 :focus-visible {
-  outline: 2px solid rgb(var(--primary));
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--shadow-glow);
+  border-radius: 0.5rem;
 }
 
-/* Respect reduced motion. */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -68,16 +113,125 @@ body {
   }
 }
 
-/* Subtle scrollbars that adapt to theme. */
+/* Scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(var(--border)) transparent;
+  scrollbar-color: rgb(var(--border-strong)) transparent;
 }
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
-  background: rgb(var(--border));
+  background: rgb(var(--border-strong));
   border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--foreground-subtle));
+}
+
+/* ===== Utility classes ===== */
+
+/* Glassmorphism */
+.glass {
+  background: rgb(var(--glass-bg) / 0.7);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgb(var(--glass-border) / 0.5);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Gradient background */
+.gradient-bg {
+  background: var(--gradient-primary);
+}
+
+/* Hero gradient */
+.hero-gradient {
+  background: var(--gradient-hero);
+}
+
+/* Shadows */
+.shadow-soft { box-shadow: var(--shadow-md); }
+.shadow-lifted { box-shadow: var(--shadow-lg); }
+.shadow-floating { box-shadow: var(--shadow-xl); }
+.shadow-glow { box-shadow: var(--shadow-glow); }
+
+/* Hover lift */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Fade + scale entrance */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-fade-scale {
+  animation: fadeInScale 0.25s ease-out;
+}
+
+/* Slide in from right */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slideInRight 0.2s ease-out;
+}
+
+/* Pulse glow */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--primary-glow) / 0.3); }
+  50% { box-shadow: 0 0 0 6px rgb(var(--primary-glow) / 0); }
+}
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Shimmer (skeleton loading) */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgb(var(--surface-muted)) 0%, rgb(var(--surface-hover)) 50%, rgb(var(--surface-muted)) 100%);
+  background-size: 2000px 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* Status badge gradients */
+.badge-success {
+  background: linear-gradient(135deg, rgb(var(--success) / 0.12), rgb(var(--success) / 0.06));
+  color: rgb(var(--success));
+  border: 1px solid rgb(var(--success) / 0.2);
+}
+.badge-warning {
+  background: linear-gradient(135deg, rgb(var(--warning) / 0.12), rgb(var(--warning) / 0.06));
+  color: rgb(var(--warning));
+  border: 1px solid rgb(var(--warning) / 0.2);
+}
+.badge-danger {
+  background: linear-gradient(135deg, rgb(var(--danger) / 0.12), rgb(var(--danger) / 0.06));
+  color: rgb(var(--danger));
+  border: 1px solid rgb(var(--danger) / 0.2);
+}
+.badge-neutral {
+  background: linear-gradient(135deg, rgb(var(--foreground-muted) / 0.12), rgb(var(--foreground-muted) / 0.06));
+  color: rgb(var(--foreground-muted));
+  border: 1px solid rgb(var(--foreground-muted) / 0.2);
+}
+.badge-primary {
+  background: linear-gradient(135deg, rgb(var(--primary) / 0.12), rgb(var(--primary) / 0.06));
+  color: rgb(var(--primary));
+  border: 1px solid rgb(var(--primary) / 0.2);
 }

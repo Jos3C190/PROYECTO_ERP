@@ -5,20 +5,42 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Semantic tokens backed by CSS custom properties (see app.css).
-        // These are intentionally minimal in Phase 0; the full design system
-        // arrives in Phase 5 (see docs/design-system.md).
-        surface: 'rgb(var(--surface) / <alpha-value>)',
-        'surface-muted': 'rgb(var(--surface-muted) / <alpha-value>)',
-        border: 'rgb(var(--border) / <alpha-value>)',
-        foreground: 'rgb(var(--foreground) / <alpha-value>)',
-        'foreground-muted': 'rgb(var(--foreground-muted) / <alpha-value>)',
-        primary: 'rgb(var(--primary) / <alpha-value>)',
-        'primary-foreground': 'rgb(var(--primary-foreground) / <alpha-value>)',
-        accent: 'rgb(var(--accent) / <alpha-value>)',
-        danger: 'rgb(var(--danger) / <alpha-value>)',
-        success: 'rgb(var(--success) / <alpha-value>)',
-        warning: 'rgb(var(--warning) / <alpha-value>)'
+        surface: {
+          DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
+          elevated: 'rgb(var(--surface-elevated) / <alpha-value>)',
+          muted: 'rgb(var(--surface-muted) / <alpha-value>)',
+          hover: 'rgb(var(--surface-hover) / <alpha-value>)'
+        },
+        border: {
+          DEFAULT: 'rgb(var(--border) / <alpha-value>)',
+          strong: 'rgb(var(--border-strong) / <alpha-value>)'
+        },
+        foreground: {
+          DEFAULT: 'rgb(var(--foreground) / <alpha-value>)',
+          muted: 'rgb(var(--foreground-muted) / <alpha-value>)',
+          subtle: 'rgb(var(--foreground-subtle) / <alpha-value>)'
+        },
+        primary: {
+          DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
+          hover: 'rgb(var(--primary-hover) / <alpha-value>)',
+          foreground: 'rgb(var(--primary-foreground) / <alpha-value>)'
+        },
+        accent: {
+          DEFAULT: 'rgb(var(--accent) / <alpha-value>)',
+          foreground: 'rgb(var(--accent-foreground) / <alpha-value>)'
+        },
+        danger: {
+          DEFAULT: 'rgb(var(--danger) / <alpha-value>)',
+          foreground: 'rgb(var(--danger-foreground) / <alpha-value>)'
+        },
+        success: {
+          DEFAULT: 'rgb(var(--success) / <alpha-value>)',
+          foreground: 'rgb(var(--success-foreground) / <alpha-value>)'
+        },
+        warning: {
+          DEFAULT: 'rgb(var(--warning) / <alpha-value>)',
+          foreground: 'rgb(var(--warning-foreground) / <alpha-value>)'
+        }
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -26,7 +48,17 @@ export default {
       },
       borderRadius: {
         xl: '0.75rem',
-        '2xl': '1rem'
+        '2xl': '1rem',
+        '3xl': '1.5rem'
+      },
+      boxShadow: {
+        soft: 'var(--shadow-md)',
+        lifted: 'var(--shadow-lg)',
+        floating: 'var(--shadow-xl)',
+        glow: 'var(--shadow-glow)'
+      },
+      transitionDuration: {
+        '250': '250ms'
       }
     }
   },
