@@ -32,6 +32,7 @@ from app.application.auth.refresh_token import (
     RefreshTokenUseCase,
 )
 from app.core.config import settings
+from app.middlewares.rate_limit import rate_limit_login, rate_limit_refresh
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -62,6 +63,7 @@ def _clear_refresh_cookie(response: Response) -> None:
     response_model=TokenResponse,
     status_code=status.HTTP_200_OK,
     summary="Iniciar sesión",
+    dependencies=[Depends(rate_limit_login)],
 )
 async def login(
     payload: LoginRequest,
@@ -111,6 +113,7 @@ async def login(
     response_model=TokenResponse,
     status_code=status.HTTP_200_OK,
     summary="Rotar access token",
+    dependencies=[Depends(rate_limit_refresh)],
 )
 async def refresh(
     request: Request,
