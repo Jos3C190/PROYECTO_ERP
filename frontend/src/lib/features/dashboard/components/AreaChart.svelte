@@ -1,7 +1,6 @@
 <script lang="ts">
-  /** AreaChart — gráfico de área SVG con curva suave (Catmull-Rom), ticks Y bonitos,
-   * gradiente real, crosshair + tooltip interactivo, animación de trazado al montar.
-   * Respeta prefers-reduced-motion (sin animación si está activo). */
+  /** AreaChart — gráfico de área SVG responsivo con curva suave (Catmull-Rom),
+   * ticks Y bonitos, gradiente real, crosshair + tooltip, animación al montar. */
 
   interface Props {
     data: { date: string; value: number }[];
@@ -13,15 +12,28 @@
 
   let hovered = $state<number | null>(null);
   let containerEl: HTMLElement | null = $state(null);
+  let containerW = $state(600);
   let animated = $state(false);
 
-  const W = 600;
   const H = height;
   const PAD = { top: 12, right: 12, bottom: 28, left: 40 };
-  const chartW = W - PAD.left - PAD.right;
-  const chartH = H - PAD.top - PAD.bottom;
 
-  // Nice ticks: round to clean intervals
+  // Medir ancho real del contenedor
+  $effect(() => {
+    if (!containerEl) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const e of entries) {
+        containerW = Math.max(e.contentRect.width, 200);
+      }
+    });
+    ro.observe(containerEl);
+    return () => ro.disconnect();
+  });
+
+  let W = $derived(containerW);
+  let chartW = $derived(W - PAD.left - PAD.right);
+  let chartH = $derived(H - PAD.top - PAD.bottom);
+
   function niceTicks(min: number, max: number, count: number): number[] {
     const range = max - min;
     if (range === 0) return [min];
@@ -52,7 +64,6 @@
   function x(i: number): number { return PAD.left + i * stepX; }
   function y(v: number): number { return PAD.top + chartH - ((v - yMin) / yRange) * chartH; }
 
-  // Catmull-Rom → Bezier smooth path
   let linePath = $derived.by(() => {
     const pts = data.map((d, i) => [x(i), y(d.value)] as [number, number]);
     if (pts.length < 2) return '';
@@ -85,7 +96,7 @@
   function onMove(e: MouseEvent) {
     if (!containerEl) return;
     const rect = containerEl.getBoundingClientRect();
-    const mouseX = ((e.clientX - rect.left) / rect.width) * W;
+    const mouseX = e.clientX - rect.left;
     const idx = Math.round((mouseX - PAD.left) / stepX);
     hovered = Math.max(0, Math.min(data.length - 1, idx));
   }
@@ -93,7 +104,6 @@
   let hoverX = $derived(hovered !== null ? x(hovered) : 0);
   let hoverY = $derived(hovered !== null ? y(data[hovered].value) : 0);
 
-  // Check reduced motion
   let prefersReduced = $state(false);
   $effect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -103,8 +113,7 @@
     return () => mq.removeEventListener('change', fn);
   });
 
-  // Animate stroke on mount
-  let pathLength = $derived(linePath ? 1000 : 0);
+  let pathLength = $derived(linePath ? 2000 : 0);
   $effect(() => {
     if (prefersReduced) { animated = true; return; }
     const t = requestAnimationFrame(() => {
@@ -124,7 +133,7 @@
 </script>
 
 <div class="relative w-full" bind:this={containerEl} onmousemove={onMove} onmouseleave={() => hovered = null}>
-  <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" class="w-full" style="height: {H}px; display: block;" aria-label="{label}: tendencia de {data.length} días, valores entre {Math.round(yMin)} y {Math.round(yMax)}">
+  <svg viewBox={`0 0 ${W} ${H}`} class="w-full" style="height: {H}px; display: block;" aria-label="{label}: tendencia de {data.length} días, valores entre {Math.round(yMin)} y {Math.round(yMax)}">
     <defs>
       <linearGradient id="area-fill" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="rgb(var(--primary))" stop-opacity="0.22" />
@@ -133,16 +142,13 @@
       </linearGradient>
     </defs>
 
-    <!-- Grid: solo 4 lineas horizontales muy tenues -->
     {#each ticks as t, i (i)}
       <line x1={PAD.left} y1={y(t)} x2={PAD.left + chartW} y2={y(t)} stroke="rgb(var(--foreground))" stroke-width="1" stroke-opacity="0.06" />
       <text x={PAD.left - 8} y={y(t) + 3} text-anchor="end" fill="rgb(var(--foreground-subtle))" style="font-size: 10px; font-variant-numeric: tabular-nums;">{Math.round(t)}</text>
     {/each}
 
-    <!-- Area con gradiente real -->
     <path d={areaPath} fill="url(#area-fill)" />
 
-    <!-- Linea suave con animacion -->
     <path
       d={linePath}
       fill="none"
@@ -154,21 +160,18 @@
       stroke-dashoffset={strokeDashoffset}
     />
 
-    <!-- X labels -->
     {#each xLabels as xl (xl.label)}
       <text x={xl.x} y={H - 8} text-anchor="middle" fill="rgb(var(--foreground-subtle))" style="font-size: 10px;">{xl.label}</text>
     {/each}
 
-    <!-- Crosshair -->
     {#if hovered !== null}
       <line x1={hoverX} y1={PAD.top} x2={hoverX} y2={PAD.top + chartH} stroke="rgb(var(--primary))" stroke-width="1" stroke-opacity="0.4" stroke-dasharray="3,3" />
       <circle cx={hoverX} cy={hoverY} r="4" fill="rgb(var(--primary))" stroke="rgb(var(--surface-elevated))" stroke-width="2" />
     {/if}
   </svg>
 
-  <!-- Tooltip -->
   {#if hovered !== null}
-    <div class="pointer-events-none absolute z-10 rounded-lg border border-border bg-surface-elevated px-3 py-2 shadow-lifted" style="left: {(hoverX / W) * 100}%; top: {(hoverY / H) * 100}%; transform: translate(-50%, -130%);">
+    <div class="pointer-events-none absolute z-10 rounded-lg border border-border bg-surface-elevated px-3 py-2 shadow-lifted" style="left: {hoverX}px; top: {hoverY}px; transform: translate(-50%, -130%);">
       <p class="text-[10px] text-foreground-subtle">{new Date(data[hovered].date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</p>
       <p class="font-mono text-sm font-bold tabular-nums text-foreground">{data[hovered].value.toLocaleString()}</p>
     </div>
