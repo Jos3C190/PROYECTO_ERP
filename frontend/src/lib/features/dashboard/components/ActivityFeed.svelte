@@ -1,6 +1,7 @@
 <script lang="ts">
   /** ActivityFeed — timeline vertical de actividad reciente.
-   * Conectado a la bitácora REAL (GET /audit-logs) — único elemento no-mock del dashboard. */
+   * Conectado a la bitácora REAL (GET /audit-logs) — único elemento no-mock del dashboard.
+   * Diferencia visualmente eventos del sistema (icono engranaje) vs usuario (avatar con iniciales). */
 
   import { api, type AuditLogOut } from '$lib/api/client';
   import Avatar from '$lib/components/ui/Avatar.svelte';
@@ -41,9 +42,13 @@
     return `hace ${Math.floor(hours / 24)}d`;
   }
 
-  function initials(user_id: string | null): string {
-    if (!user_id) return 'SY';
-    return user_id.slice(0, 2).toUpperCase();
+  function isSystemEntry(entry: AuditLogOut): boolean {
+    return entry.user_id === null;
+  }
+
+  function initialsFor(entry: AuditLogOut): string {
+    if (isSystemEntry(entry)) return 'SY';
+    return entry.user_id ? entry.user_id.slice(0, 2).toUpperCase() : 'U';
   }
 
   $effect(() => { loadActivity(); });
@@ -67,11 +72,20 @@
       {#each activities as entry (entry.id)}
         <li class="relative flex items-start gap-3 py-2">
           <div class="z-10 flex-none">
-            <Avatar initials={initials(entry.user_id)} size={28} />
+            {#if isSystemEntry(entry)}
+              <!-- Sistema: icono engranaje en circulo neutro -->
+              <div class="flex h-7 w-7 items-center justify-center rounded-full bg-surface-muted ring-2 ring-surface-elevated">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-foreground-subtle">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
+              </div>
+            {:else}
+              <Avatar initials={initialsFor(entry)} size={28} />
+            {/if}
           </div>
           <div class="flex-1 min-w-0 pt-0.5">
             <p class="text-[13px] text-foreground">
-              <span class="font-medium">{entry.user_id ? 'Usuario' : 'Sistema'}</span>
+              <span class="font-medium">{isSystemEntry(entry) ? 'Sistema' : 'Usuario'}</span>
               <span class="text-foreground-muted"> {actionLabel(entry.action)}</span>
             </p>
             {#if entry.ip_address}

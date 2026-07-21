@@ -15,6 +15,7 @@
   import SummaryTable from '$lib/features/dashboard/components/SummaryTable.svelte';
   import ProgressRing from '$lib/features/dashboard/components/ProgressRing.svelte';
   import AvatarGroup from '$lib/components/ui/AvatarGroup.svelte';
+  import Callout from '$lib/components/ui/Callout.svelte';
 
   // MOCK_DATA = true — KPIs, serie temporal, distribución y tabla son simulados.
   // ActivityFeed es el único componente que consume datos reales (bitácora).
@@ -40,7 +41,7 @@
 
 <div class="p-6 md:p-8">
   <!-- Header -->
-  <div class="mb-6">
+  <div class="mb-5">
     <h1 class="text-xl font-bold tracking-tight text-foreground">
       Hola, {session.user?.username ?? ''} 👋
     </h1>
@@ -50,9 +51,11 @@
   </div>
 
   {#if MOCK_DATA}
-    <p class="mb-5 text-[11px] text-foreground-subtle">
-      📊 Las métricas son simuladas. La actividad reciente es real (desde la bitácora).
-    </p>
+    <Callout variant="info">
+      <span class="text-foreground-muted">Las métricas son simuladas. </span>
+      <span class="font-medium text-foreground">La actividad reciente es real</span>
+      <span class="text-foreground-muted"> (desde la bitácora).</span>
+    </Callout>
   {/if}
 
   <!-- KPIs -->
@@ -70,7 +73,6 @@
 
   <!-- Row 2: chart + donut -->
   <div class="mb-6 grid gap-4 lg:grid-cols-3">
-    <!-- Main chart -->
     <div class="rounded-xl border border-border bg-surface-elevated p-5 lg:col-span-2">
       <div class="mb-4 flex items-center justify-between">
         <div>
@@ -94,7 +96,6 @@
       {/if}
     </div>
 
-    <!-- Donut -->
     <div class="rounded-xl border border-border bg-surface-elevated p-5">
       <h2 class="mb-4 text-sm font-semibold text-foreground">Empleados por departamento</h2>
       {#if loading}
@@ -108,15 +109,17 @@
     </div>
   </div>
 
-  <!-- Row 3: activity + progress + team -->
+  <!-- Row 3: activity (altura fija con scroll) + progress + team -->
   <div class="mb-6 grid gap-4 lg:grid-cols-3">
-    <!-- Activity feed (real) -->
+    <!-- Activity feed: altura fija con scroll interno + mask inferior -->
     <div class="rounded-xl border border-border bg-surface-elevated p-5 lg:col-span-2">
       <div class="mb-4 flex items-center justify-between">
         <h2 class="text-sm font-semibold text-foreground">Actividad reciente</h2>
         <a href="/audit-log" class="text-[11px] font-medium text-primary hover:underline">Ver todo →</a>
       </div>
-      <ActivityFeed />
+      <div class="max-h-[340px] overflow-y-auto" style="mask-image: linear-gradient(to bottom, black 85%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);">
+        <ActivityFeed />
+      </div>
     </div>
 
     <!-- Progress + team -->

@@ -1,6 +1,27 @@
 // MOCK DATA — reemplazar por llamadas reales cuando existan los módulos correspondientes.
 // Todos los datos aquí son simulados. Ningún componente del dashboard hace fetch a endpoints de negocio.
 
+// ---------- Pool unificado de usuarios mock (usado en todos los widgets) ----------
+
+export interface MockUser {
+  name: string;
+  initials: string;
+  dept: string;
+}
+
+export const USERS: MockUser[] = [
+  { name: 'Ana García', initials: 'AG', dept: 'Tecnología' },
+  { name: 'Carlos López', initials: 'CL', dept: 'Ventas' },
+  { name: 'María Fernández', initials: 'MF', dept: 'Recursos Humanos' },
+  { name: 'Juan Pérez', initials: 'JP', dept: 'Administración' },
+  { name: 'Laura Torres', initials: 'LT', dept: 'Operaciones' },
+  { name: 'Pedro Ramírez', initials: 'PR', dept: 'Tecnología' },
+  { name: 'Sofía Castro', initials: 'SC', dept: 'Ventas' },
+  { name: 'Diego Morales', initials: 'DM', dept: 'Administración' },
+  { name: 'Elena Vargas', initials: 'EV', dept: 'Recursos Humanos' },
+  { name: 'Roberto Díaz', initials: 'RD', dept: 'Operaciones' },
+];
+
 // ---------- Types ----------
 
 export interface KpiData {
@@ -8,28 +29,28 @@ export interface KpiData {
   value: number;
   prefix?: string;
   suffix?: string;
-  change: number; // percentage vs previous period
+  change: number;
   sparkline: number[];
-  icon: string; // SVG path data
+  icon: string;
 }
 
 export interface TimeSeriesPoint {
-  date: string; // ISO date
+  date: string;
   value: number;
 }
 
 export interface DistributionItem {
   label: string;
   value: number;
-  color: string; // RGB triplet for dynamic theming
 }
 
 export interface ActivityItem {
   user: string;
   initials: string;
+  isSystem: boolean;
   action: string;
   resource: string;
-  timeAgo: string;
+  minutesAgo: number;
   status: 'success' | 'failure';
 }
 
@@ -54,7 +75,7 @@ export const KPIS: KpiData[] = [
     label: 'Usuarios activos',
     value: 47,
     change: 12.5,
-    sparkline: [38, 40, 42, 41, 44, 45, 43, 46, 47],
+    sparkline: [38, 39, 41, 40, 42, 44, 43, 45, 47],
     icon: 'M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m6-2a4 4 0 1 0-8 0 4 4 0 0 0 8 0z',
   },
   {
@@ -76,7 +97,7 @@ export const KPIS: KpiData[] = [
     value: 4,
     change: 0,
     sparkline: [4, 4, 4, 4, 4, 4, 4, 4, 4],
-    icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
+    icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   },
 ];
 
@@ -105,42 +126,49 @@ export const SERIES_90D = generateSeries(90, 320, 0.18, 30);
 // ---------- Distribution (employees by department) ----------
 
 export const DEPT_DISTRIBUTION: DistributionItem[] = [
-  { label: 'Tecnología', value: 42, color: '0 112 243' },
-  { label: 'Ventas', value: 28, color: '0 168 150' },
-  { label: 'Recursos Humanos', value: 18, color: '237 151 39' },
-  { label: 'Administración', value: 22, color: '99 102 241' },
-  { label: 'Operaciones', value: 14, color: '239 68 68' },
+  { label: 'Tecnología', value: 42 },
+  { label: 'Ventas', value: 28 },
+  { label: 'Recursos Humanos', value: 18 },
+  { label: 'Administración', value: 22 },
+  { label: 'Operaciones', value: 14 },
 ];
 
-// ---------- Activity feed (mock — coherent with real system actions) ----------
+// ---------- Activity feed (mock — variado, sin repeticiones consecutivas) ----------
 
 export const ACTIVITY: ActivityItem[] = [
-  { user: 'Ana García', initials: 'AG', action: 'creó el usuario', resource: 'jperez', timeAgo: 'hace 5 min', status: 'success' },
-  { user: 'Carlos López', initials: 'CL', action: 'asignó el rol', resource: 'ADMINISTRADOR a maria', timeAgo: 'hace 12 min', status: 'success' },
-  { user: 'Sistema', initials: 'SY', action: 'registro intento de login fallido para', resource: 'unknown@e.com', timeAgo: 'hace 23 min', status: 'failure' },
-  { user: 'María Fernández', initials: 'MF', action: 'editó el empleado', resource: 'EMP-0042', timeAgo: 'hace 1 h', status: 'success' },
-  { user: 'Ana García', initials: 'AG', action: 'desactivó el usuario', resource: 'tempuser', timeAgo: 'hace 2 h', status: 'success' },
-  { user: 'Carlos López', initials: 'CL', action: 'inició sesión', resource: '', timeAgo: 'hace 3 h', status: 'success' },
-  { user: 'Sistema', initials: 'SY', action: 'creó el departamento', resource: 'Logística', timeAgo: 'ayer', status: 'success' },
-  { user: 'María Fernández', initials: 'MF', action: 'revocó el rol', resource: 'RECURSOS_HUMANOS de bob', timeAgo: 'ayer', status: 'success' },
+  { user: 'Ana García', initials: 'AG', isSystem: false, action: 'creó el usuario', resource: 'jperez', minutesAgo: 5, status: 'success' },
+  { user: 'Carlos López', initials: 'CL', isSystem: false, action: 'asignó el rol', resource: 'ADMINISTRADOR a mf', minutesAgo: 12, status: 'success' },
+  { user: 'Sistema', initials: 'SY', isSystem: true, action: 'registró intento de login fallido para', resource: 'unknown@e.com', minutesAgo: 23, status: 'failure' },
+  { user: 'María Fernández', initials: 'MF', isSystem: false, action: 'editó el empleado', resource: 'EMP-0042', minutesAgo: 47, status: 'success' },
+  { user: 'Ana García', initials: 'AG', isSystem: false, action: 'desactivó el usuario', resource: 'tempuser', minutesAgo: 95, status: 'success' },
+  { user: 'Carlos López', initials: 'CL', isSystem: false, action: 'inició sesión', resource: '', minutesAgo: 180, status: 'success' },
+  { user: 'Sistema', initials: 'SY', isSystem: true, action: 'creó el departamento', resource: 'Logística', minutesAgo: 320, status: 'success' },
+  { user: 'María Fernández', initials: 'MF', isSystem: false, action: 'revocó el rol', resource: 'RRHH de bob', minutesAgo: 480, status: 'success' },
+  { user: 'Juan Pérez', initials: 'JP', isSystem: false, action: 'reseteó la contraseña de', resource: 'ltorres', minutesAgo: 720, status: 'success' },
+  { user: 'Sistema', initials: 'SY', isSystem: true, action: 'desbloqueó la cuenta de', resource: 'dmorales', minutesAgo: 900, status: 'success' },
 ];
 
-// ---------- Summary table (recent users) ----------
+function formatTimeAgo(minutes: number): string {
+  if (minutes < 1) return 'ahora';
+  if (minutes < 60) return `hace ${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `hace ${hours}h`;
+  return `hace ${Math.floor(hours / 24)}d`;
+}
 
-export const SUMMARY_ROWS: SummaryRow[] = [
-  { name: 'Ana García', initials: 'AG', dept: 'Tecnología', status: 'active', createdAt: '21 Jul, 09:15' },
-  { name: 'Carlos López', initials: 'CL', dept: 'Ventas', status: 'active', createdAt: '21 Jul, 08:42' },
-  { name: 'María Fernández', initials: 'MF', dept: 'Recursos Humanos', status: 'active', createdAt: '20 Jul, 17:30' },
-  { name: 'Juan Pérez', initials: 'JP', dept: 'Administración', status: 'active', createdAt: '20 Jul, 14:20' },
-  { name: 'Laura Torres', initials: 'LT', dept: 'Operaciones', status: 'inactive', createdAt: '20 Jul, 11:05' },
-  { name: 'Pedro Ramírez', initials: 'PR', dept: 'Tecnología', status: 'pending', createdAt: '19 Jul, 16:45' },
-  { name: 'Sofía Castro', initials: 'SC', dept: 'Ventas', status: 'active', createdAt: '19 Jul, 10:30' },
-  { name: 'Diego Morales', initials: 'DM', dept: 'Administración', status: 'locked', createdAt: '18 Jul, 15:10' },
-  { name: 'Elena Vargas', initials: 'EV', dept: 'Recursos Humanos', status: 'active', createdAt: '18 Jul, 09:25' },
-  { name: 'Roberto Díaz', initials: 'RD', dept: 'Operaciones', status: 'inactive', createdAt: '17 Jul, 14:00' },
-];
+export const ACTIVITY_FORMATTED = ACTIVITY.map(a => ({ ...a, timeAgo: formatTimeAgo(a.minutesAgo) }));
 
-// ---------- Team (for avatar group) ----------
+// ---------- Summary table (uses same user pool) ----------
+
+export const SUMMARY_ROWS: SummaryRow[] = USERS.slice(0, 10).map((u, i) => ({
+  name: u.name,
+  initials: u.initials,
+  dept: u.dept,
+  status: (['active', 'active', 'active', 'active', 'inactive', 'pending', 'active', 'locked', 'active', 'inactive'] as const)[i],
+  createdAt: `${20 - Math.floor(i / 3)} Jul, ${['09:15', '08:42', '17:30', '14:20', '11:05', '16:45', '10:30', '15:10', '09:25', '14:00'][i]}`,
+}));
+
+// ---------- Team (uses same user pool) ----------
 
 export const TEAM: TeamMember[] = [
   { name: 'Ana García', initials: 'AG', role: 'Super Admin' },
@@ -152,4 +180,4 @@ export const TEAM: TeamMember[] = [
 
 // ---------- Progress data ----------
 
-export const ONBOARDING_PROGRESS = 72; // percentage
+export const ONBOARDING_PROGRESS = 72;
