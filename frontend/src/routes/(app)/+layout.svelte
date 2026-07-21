@@ -21,7 +21,7 @@
   let searchInput = $state(search.query);
 
   // Rutas que soportan búsqueda global
-  const SEARCHABLE_ROUTES = ['/users', '/employees'];
+  const SEARCHABLE_ROUTES = ['/users', '/employees', '/roles', '/departments', '/audit-log'];
 
   let showSearch = $derived(SEARCHABLE_ROUTES.includes(page.url.pathname));
 

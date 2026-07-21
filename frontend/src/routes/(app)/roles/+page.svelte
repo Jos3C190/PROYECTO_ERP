@@ -1,5 +1,6 @@
 <script lang="ts">
   import { api, HttpError, type RoleWithPermissions, type PermissionOut, type UserOut } from '$lib/api/client';
+  import { search as globalSearch } from '$lib/stores/search.svelte';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Modal from '$lib/components/ui/Modal.svelte';
@@ -62,6 +63,16 @@
     selectedPerms = new Set(selectedPerms);
   }
 
+  let filteredRoles = $derived.by(() => {
+    const q = globalSearch.query.toLowerCase().trim();
+    if (!q) return roles;
+    return roles.filter(r =>
+      r.name.toLowerCase().includes(q) ||
+      r.permissions.some(p => p.code.toLowerCase().includes(q)) ||
+      (r.description ?? '').toLowerCase().includes(q)
+    );
+  });
+
   $effect(() => { loadRoles(); });
 </script>
 
@@ -97,7 +108,7 @@
     </div>
   {:else}
     <div class="grid gap-5 md:grid-cols-2">
-      {#each roles as role (role.id)}
+      {#each filteredRoles as role (role.id)}
         <Card class="p-5 hover-lift">
           <!-- Header -->
           <div class="flex items-start justify-between gap-3">

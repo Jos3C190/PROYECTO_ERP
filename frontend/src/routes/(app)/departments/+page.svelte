@@ -1,5 +1,6 @@
 <script lang="ts">
   import { api, HttpError, type DepartmentOut } from '$lib/api/client';
+  import { search as globalSearch } from '$lib/stores/search.svelte';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Modal from '$lib/components/ui/Modal.svelte';
@@ -50,6 +51,15 @@
     catch (err) { error = err instanceof HttpError ? err.message : 'Error.'; }
   }
 
+  let filteredDepartments = $derived.by(() => {
+    const q = globalSearch.query.toLowerCase().trim();
+    if (!q) return departments;
+    return departments.filter(d =>
+      d.name.toLowerCase().includes(q) ||
+      (d.description ?? '').toLowerCase().includes(q)
+    );
+  });
+
   $effect(() => { loadDepartments(); });
 </script>
 
@@ -89,7 +99,7 @@
     </Card>
   {:else}
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {#each departments as dept (dept.id)}
+      {#each filteredDepartments as dept (dept.id)}
         <Card class="p-5 hover-lift">
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-center gap-3">

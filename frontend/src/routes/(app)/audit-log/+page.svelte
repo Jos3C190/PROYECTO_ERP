@@ -1,5 +1,6 @@
 <script lang="ts">
   import { api, HttpError, type AuditLogOut, type AuditLogPage } from '$lib/api/client';
+  import { search as globalSearch } from '$lib/stores/search.svelte';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Modal from '$lib/components/ui/Modal.svelte';
@@ -58,6 +59,16 @@
     return `hace ${Math.floor(hours / 24)}d`;
   }
 
+  let filteredLogs = $derived.by(() => {
+    const q = globalSearch.query.toLowerCase().trim();
+    if (!q) return logs;
+    return logs.filter(l =>
+      l.action.toLowerCase().includes(q) ||
+      (l.resource_type ?? '').toLowerCase().includes(q) ||
+      (l.ip_address ?? '').toLowerCase().includes(q)
+    );
+  });
+
   $effect(() => { loadLogs(); });
 </script>
 
@@ -108,7 +119,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-border">
-            {#each logs as entry (entry.id)}
+            {#each filteredLogs as entry (entry.id)}
               <tr class="group cursor-pointer transition-colors hover:bg-surface-hover" onclick={() => openDetail(entry)}>
                 <td class="whitespace-nowrap px-5 py-3"><p class="text-sm text-foreground">{new Date(entry.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p><p class="text-xs text-foreground-subtle">{timeAgo(entry.created_at)}</p></td>
                 <td class="px-5 py-3"><span class="{actionBadgeClass(entry.action)} inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold">{entry.action}</span></td>
