@@ -27,6 +27,8 @@
 
 <aside
   class="flex h-full flex-col border-r border-border bg-surface transition-all duration-200 {collapsed ? 'w-16' : 'w-64'}"
+  role="navigation"
+  aria-label="Navegación principal"
 >
   <div class="flex items-center gap-3 border-b border-border px-4 py-4 {collapsed ? 'justify-center' : ''}">
     <div class="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -55,6 +57,7 @@
               onclick={handleClick}
               class="flex items-center gap-3 px-4 py-2 text-sm transition-colors hover:bg-surface-muted {isActive(item.route) ? 'bg-surface-muted font-medium text-primary' : 'text-foreground'} {collapsed ? 'justify-center' : ''}"
               title={collapsed ? item.label : ''}
+              aria-current={isActive(item.route) ? 'page' : undefined}
             >
               <svg class="flex-none" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d={item.icon} />
