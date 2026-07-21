@@ -39,6 +39,70 @@ def _make_session_factory() -> async_sessionmaker[AsyncSession]:
     return async_sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)
 
 
+async def _seed_permissions_and_roles() -> None:
+    """Seed the permission catalogue and base roles (idempotent)."""
+    from sqlalchemy import select
+
+    from app.application.rbac.catalogue import BASE_ROLES, PERMISSION_CATALOGUE
+    from app.core.logging import configure_logging, get_logger
+    from app.infrastructure.models.rbac import (
+        Permission as ORMPermission,
+        Role as ORMRole,
+        RolePermission,
+    )
+
+    configure_logging()
+    log = get_logger("seed")
+    factory = _make_session_factory()
+
+    async with factory() as session:
+        # 1) Permissions — insert missing codes, skip existing.
+        existing_perm_codes = {
+            p.code for p in (await session.execute(select(ORMPermission))).scalars().all()
+        }
+        new_perms = [
+            ORMPermission(code=s.code, description=s.description, module=s.module)
+            for s in PERMISSION_CATALOGUE
+            if s.code not in existing_perm_codes
+        ]
+        if new_perms:
+            session.add_all(new_perms)
+            await session.flush()
+            log.info("seed_permissions_created", count=len(new_perms))
+        else:
+            log.info("seed_permissions_skip")
+
+        # Map all codes -> ids for role assignment.
+        perm_map: dict[str, object] = {
+            p.code: p.id for p in (await session.execute(select(ORMPermission))).scalars().all()
+        }
+
+        # 2) Roles — insert missing, assign permissions.
+        existing_roles = {
+            r.name: r for r in (await session.execute(select(ORMRole))).scalars().all()
+        }
+        for name, desc, is_system, perm_codes in BASE_ROLES:
+            role = existing_roles.get(name)
+            if role is None:
+                role = ORMRole(name=name, description=desc, is_system=is_system)
+                session.add(role)
+                await session.flush()
+                log.info("seed_role_created", name=name)
+            # Assign permissions (clear + set).
+            await session.execute(
+                __import__("sqlalchemy").delete(RolePermission).where(
+                    RolePermission.role_id == role.id
+                )
+            )
+            for code in perm_codes:
+                if code in perm_map:
+                    session.add(
+                        RolePermission(role_id=role.id, permission_id=perm_map[code])
+                    )
+        await session.commit()
+        log.info("seed_roles_done")
+
+
 async def _seed_super_admin() -> None:
     from sqlalchemy import select
 
@@ -125,7 +189,8 @@ def run(phase0: bool = typer.Option(False, "--phase0", help="Phase 0 placeholder
         typer.secho("[seed] Phase 0 — no seed data yet.", fg=typer.colors.CYAN)
         return
 
-    typer.secho("[seed] Phase 1 — seeding super-admin and demo users...", fg=typer.colors.CYAN)
+    typer.secho("[seed] Phase 2 — seeding permissions, roles, super-admin, demo users...", fg=typer.colors.CYAN)
+    asyncio.run(_seed_permissions_and_roles())
     asyncio.run(_seed_super_admin())
     asyncio.run(_seed_demo_users())
     typer.secho(
