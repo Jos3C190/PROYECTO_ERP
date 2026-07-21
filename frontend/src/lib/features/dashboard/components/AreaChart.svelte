@@ -123,8 +123,8 @@
   let strokeDashoffset = $derived(prefersReduced ? 0 : (animated ? 0 : pathLength));
 </script>
 
-<div class="relative" bind:this={containerEl} onmousemove={onMove} onmouseleave={() => hovered = null}>
-  <svg viewBox={`0 0 ${W} ${H}`} class="w-full" style="height: {H}px" aria-label="{label}: tendencia de {data.length} días, valores entre {Math.round(yMin)} y {Math.round(yMax)}">
+<div class="relative w-full" bind:this={containerEl} onmousemove={onMove} onmouseleave={() => hovered = null}>
+  <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" class="w-full" style="height: {H}px; display: block;" aria-label="{label}: tendencia de {data.length} días, valores entre {Math.round(yMin)} y {Math.round(yMax)}">
     <defs>
       <linearGradient id="area-fill" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="rgb(var(--primary))" stop-opacity="0.22" />

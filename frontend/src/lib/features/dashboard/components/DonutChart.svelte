@@ -46,7 +46,7 @@
   });
 </script>
 
-<div class="flex items-center gap-5">
+<div class="flex h-full items-center gap-5">
   <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} class="flex-none" aria-label="Distribución por departamento, {total} empleados en {colored.length} departamentos">
     <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgb(var(--surface-muted))" stroke-width={stroke} />
     {#each segments as seg (seg.label)}

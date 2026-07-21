@@ -20,7 +20,7 @@
     return change > 0 ? 'positive' : 'negative';
   });
 
-  let trendColor = $derived(trendState === 'positive' ? 'var(--success)' : trendState === 'negative' ? 'var(--danger)' : 'var(--foreground-muted)');
+  let trendColorRgb = $derived(trendState === 'positive' ? '0 168 107' : trendState === 'negative' ? '239 68 68' : '100 116 139');
   let trendBg = $derived(trendState === 'positive' ? 'badge-success' : trendState === 'negative' ? 'badge-danger' : 'badge-neutral');
 
   // Sparkline: Catmull-Rom suave + gradiente del color de tendencia
@@ -63,7 +63,7 @@
     </div>
     <!-- Icono tintado semántico, no gris plano -->
     <div class="flex h-8 w-8 flex-none items-center justify-center rounded-lg" style="background: rgb({trendState === 'positive' ? '0 168 107' : trendState === 'negative' ? '239 68 68' : '100 116 139'} / 0.1);">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: {trendColor};"><path d={icon} /></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: rgb({trendColorRgb});"><path d={icon} /></svg>
     </div>
   </div>
 
@@ -91,12 +91,12 @@
     <svg width={SW} height={SH} viewBox={`0 0 ${SW} ${SH}`} class="flex-none" aria-hidden="true">
       <defs>
         <linearGradient id={sparkId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color={trendColor} stop-opacity="0.2" />
-          <stop offset="100%" stop-color={trendColor} stop-opacity="0" />
+          <stop offset="0%" stop-color={`rgb(${trendColorRgb})`} stop-opacity="0.25" />
+          <stop offset="100%" stop-color={`rgb(${trendColorRgb})`} stop-opacity="0" />
         </linearGradient>
       </defs>
       <path d={sparkArea} fill={`url(#${sparkId})`} />
-      <path d={sparkPath} fill="none" stroke={trendColor} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d={sparkPath} fill="none" stroke={`rgb(${trendColorRgb})`} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   </div>
 </div>

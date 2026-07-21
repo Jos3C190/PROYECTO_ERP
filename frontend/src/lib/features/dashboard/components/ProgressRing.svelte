@@ -15,22 +15,22 @@
   let circumference = $derived(2 * Math.PI * radius);
   let dash = $derived((value / 100) * circumference);
 
-  let color = $derived.by(() => {
-    if (value > 70) return 'var(--success)';
-    if (value >= 40) return 'var(--warning)';
-    return 'var(--danger)';
+  let colorRgb = $derived.by(() => {
+    if (value > 70) return '0 168 107';
+    if (value >= 40) return '237 151 39';
+    return '239 68 68';
   });
 </script>
 
 <div class="flex flex-col items-center">
   <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-label="{label}: {value}%">
-    <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgb(var(--surface-muted))" stroke-width={stroke} />
+    <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgb(var(--border))" stroke-width={stroke} />
     <circle
       cx={size / 2}
       cy={size / 2}
       r={radius}
       fill="none"
-      stroke={color}
+        stroke={`rgb(${colorRgb})`}
       stroke-width={stroke}
       stroke-dasharray={`${dash} ${circumference}`}
       stroke-dashoffset={circumference / 4}
