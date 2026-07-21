@@ -157,6 +157,31 @@ export interface Page<T> {
   meta: PageMeta;
 }
 
+export interface PermissionOut {
+  id: string;
+  code: string;
+  description: string | null;
+  module: string | null;
+}
+
+export interface RoleOut {
+  id: string;
+  name: string;
+  description: string | null;
+  is_system: boolean;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface RoleWithPermissions extends RoleOut {
+  permissions: PermissionOut[];
+}
+
+export interface EffectivePermissions {
+  permissions: string[];
+  is_superuser: boolean;
+}
+
 export const api = {
   auth: {
     login: (login: string, password: string) =>
@@ -175,7 +200,35 @@ export const api = {
       apiFetch<{ message: string; code: string }>('/auth/logout', {
         method: 'POST'
       }),
-    me: () => apiFetch<UserOut>('/auth/me')
+    me: () => apiFetch<UserOut>('/auth/me'),
+    myPermissions: () => apiFetch<EffectivePermissions>('/auth/me/permissions')
+  },
+  roles: {
+    list: () => apiFetch<RoleWithPermissions[]>('/roles'),
+    listPermissions: () => apiFetch<PermissionOut[]>('/roles/permissions'),
+    get: (id: string) => apiFetch<RoleWithPermissions>(`/roles/${id}`),
+    create: (data: { name: string; description?: string }) =>
+      apiFetch<RoleOut>('/roles', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: { name?: string; description?: string }) =>
+      apiFetch<RoleOut>(`/roles/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: (id: string) =>
+      apiFetch<{ message: string; code: string }>(`/roles/${id}`, { method: 'DELETE' }),
+    setPermissions: (id: string, permissionCodes: string[]) =>
+      apiFetch<RoleWithPermissions>(`/roles/${id}/permissions`, {
+        method: 'PUT',
+        body: JSON.stringify({ permission_codes: permissionCodes })
+      }),
+    assign: (userId: string, roleId: string) =>
+      apiFetch<{ message: string; code: string }>('/roles/assign', {
+        method: 'POST',
+        body: JSON.stringify({ user_id: userId, role_id: roleId })
+      }),
+    revoke: (userId: string, roleId: string) =>
+      apiFetch<{ message: string; code: string }>('/roles/revoke', {
+        method: 'POST',
+        body: JSON.stringify({ user_id: userId, role_id: roleId })
+      }),
+    userRoles: (userId: string) => apiFetch<RoleOut[]>(`/roles/users/${userId}/roles`)
   },
   users: {
     list: (params: { page?: number; size?: number; search?: string } = {}) => {

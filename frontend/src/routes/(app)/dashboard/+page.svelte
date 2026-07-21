@@ -1,5 +1,6 @@
 <script lang="ts">
   import { session } from '$lib/stores/session.svelte';
+  import { permissions } from '$lib/stores/permissions.svelte';
   import { api } from '$lib/api/client';
   import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
   import Card from '$lib/components/ui/Card.svelte';
@@ -16,6 +17,7 @@
       // ignore — clearing local state anyway
     } finally {
       session.clear();
+      permissions.clear();
       loading = false;
       window.location.href = '/login';
     }
@@ -77,7 +79,10 @@
             <a href="/users" class="text-primary hover:underline">Gestión de usuarios →</a>
             <span class="block text-xs text-foreground-muted">Listar, activar, desactivar, desbloquear</span>
           </li>
-          <li class="text-foreground-muted">· RBAC (Fase 2)</li>
+          <li>
+            <a href="/roles" class="text-primary hover:underline">Roles y permisos →</a>
+            <span class="block text-xs text-foreground-muted">Ver roles, matriz de permisos</span>
+          </li>
           <li class="text-foreground-muted">· Empleados (Fase 3)</li>
           <li class="text-foreground-muted">· Bitácora (Fase 4)</li>
         </ul>

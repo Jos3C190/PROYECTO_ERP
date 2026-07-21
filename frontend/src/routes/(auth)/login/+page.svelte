@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { session } from '$lib/stores/session.svelte';
+  import { permissions } from '$lib/stores/permissions.svelte';
   import { api, HttpError } from '$lib/api/client';
   import Button from '$lib/components/ui/Button.svelte';
   import Card from '$lib/components/ui/Card.svelte';
@@ -46,6 +47,8 @@
       session.setToken(tokens.access_token);
       const me = await api.auth.me();
       session.setUser(me);
+      const perms = await api.auth.myPermissions();
+      permissions.set(perms.permissions, perms.is_superuser);
       await goto('/dashboard');
     } catch (err) {
       if (err instanceof HttpError) {

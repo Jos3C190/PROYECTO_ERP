@@ -1,5 +1,6 @@
 <script lang="ts">
   import { session } from '$lib/stores/session.svelte';
+  import { permissions } from '$lib/stores/permissions.svelte';
   import { api, HttpError, type UserOut, type Page } from '$lib/api/client';
   import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
   import Card from '$lib/components/ui/Card.svelte';
@@ -87,6 +88,7 @@
   async function handleLogout() {
     try { await api.auth.logout(); } catch { /* ignore */ }
     session.clear();
+    permissions.clear();
     window.location.href = '/login';
   }
 
