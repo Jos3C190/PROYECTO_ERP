@@ -1,21 +1,20 @@
 """Users router — admin CRUD for user management.
 
-Phase 1b: guarded by `is_superuser` (the actor must be a superadmin). Phase 2
-replaces this with the dynamic RBAC `require_permission` dependency.
-
-Business rules enforced in the use cases:
-- Cannot self-deactivate or self-demote.
-- Cannot remove the last active superadmin.
-- Force-reset not allowed on self.
+Phase 2: guarded by `require_permission` (dynamic RBAC). Superusers pass
+automatically via the CheckPermissionUseCase shortcut.
 """
 from __future__ import annotations
 
 import uuid
 
 from fastapi import APIRouter, Depends, Query, status
-from fastapi.responses import JSONResponse
 
-from app.api.v1.deps import CurrentUser, SessionDep, get_register_user_use_case
+from app.api.v1.deps import (
+    CurrentUser,
+    SessionDep,
+    get_register_user_use_case,
+    require_permission,
+)
 from app.api.v1.schemas.common import MessageOut
 from app.api.v1.schemas.users import (
     CreateUserRequest,
@@ -38,18 +37,9 @@ from app.application.users.admin_actions import (
 from app.application.users.get_user import GetUserUseCase
 from app.application.users.list_users import ListUsersInput, ListUsersUseCase
 from app.application.users.update_user import UpdateUserInput, UpdateUserUseCase
-from app.core.exceptions import AuthorizationError
 from app.domain.ports.user_repository import UserRepository
 
 router = APIRouter(prefix="/users", tags=["users"])
-
-
-def require_superuser(current: CurrentUser) -> None:
-    """Phase 1b guard. Phase 2 replaces with RBAC require_permission."""
-    if not current.is_superuser:
-        raise AuthorizationError(
-            "Requiere privilegios de superadministrador.", code="superuser_required"
-        )
 
 
 def _get_user_repo(session: SessionDep) -> UserRepository:
@@ -63,10 +53,9 @@ def _get_user_repo(session: SessionDep) -> UserRepository:
     response_model=Page[UserOut],
     status_code=status.HTTP_200_OK,
     summary="Listar usuarios (paginado)",
+    dependencies=[Depends(require_permission("users:read"))],
 )
 async def list_users(
-    current: CurrentUser,
-    _guard: None = Depends(require_superuser),
     repo: UserRepository = Depends(_get_user_repo),
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
@@ -85,11 +74,10 @@ async def list_users(
     response_model=UserOut,
     status_code=status.HTTP_200_OK,
     summary="Obtener usuario por id",
+    dependencies=[Depends(require_permission("users:read"))],
 )
 async def get_user(
     user_id: uuid.UUID,
-    current: CurrentUser,
-    _guard: None = Depends(require_superuser),
     repo: UserRepository = Depends(_get_user_repo),
 ) -> UserOut:
     uc = GetUserUseCase(repo)
@@ -102,11 +90,10 @@ async def get_user(
     response_model=UserOut,
     status_code=status.HTTP_201_CREATED,
     summary="Crear usuario",
+    dependencies=[Depends(require_permission("users:create"))],
 )
 async def create_user(
     body: CreateUserRequest,
-    current: CurrentUser,
-    _guard: None = Depends(require_superuser),
     register_uc: RegisterUserUseCase = Depends(get_register_user_use_case),
 ) -> UserOut:
     created = await register_uc.execute(
@@ -126,12 +113,12 @@ async def create_user(
     response_model=UserOut,
     status_code=status.HTTP_200_OK,
     summary="Actualizar usuario (activo / superadmin)",
+    dependencies=[Depends(require_permission("users:update"))],
 )
 async def update_user(
     user_id: uuid.UUID,
     body: UpdateUserRequest,
     current: CurrentUser,
-    _guard: None = Depends(require_superuser),
     repo: UserRepository = Depends(_get_user_repo),
 ) -> UserOut:
     uc = UpdateUserUseCase(repo)
@@ -151,12 +138,12 @@ async def update_user(
     response_model=MessageOut,
     status_code=status.HTTP_200_OK,
     summary="Forzar cambio de contraseña",
+    dependencies=[Depends(require_permission("users:force_password_reset"))],
 )
 async def force_password_reset(
     user_id: uuid.UUID,
     body: ForcePasswordResetRequest,
     current: CurrentUser,
-    _guard: None = Depends(require_superuser),
     repo: UserRepository = Depends(_get_user_repo),
 ) -> MessageOut:
     uc = ForcePasswordResetUseCase(repo)
@@ -173,11 +160,10 @@ async def force_password_reset(
     response_model=MessageOut,
     status_code=status.HTTP_200_OK,
     summary="Desbloquear cuenta",
+    dependencies=[Depends(require_permission("users:unlock"))],
 )
 async def unlock_account(
     user_id: uuid.UUID,
-    current: CurrentUser,
-    _guard: None = Depends(require_superuser),
     repo: UserRepository = Depends(_get_user_repo),
 ) -> MessageOut:
     uc = UnlockAccountUseCase(repo)
@@ -190,11 +176,11 @@ async def unlock_account(
     response_model=MessageOut,
     status_code=status.HTTP_200_OK,
     summary="Desactivar usuario (soft delete)",
+    dependencies=[Depends(require_permission("users:deactivate"))],
 )
 async def deactivate_user(
     user_id: uuid.UUID,
     current: CurrentUser,
-    _guard: None = Depends(require_superuser),
     repo: UserRepository = Depends(_get_user_repo),
 ) -> MessageOut:
     uc = DeactivateUserUseCase(repo)

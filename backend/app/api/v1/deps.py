@@ -8,7 +8,7 @@ from __future__ import annotations
 import uuid
 from typing import Annotated
 
-from fastapi import Depends, Header
+from fastapi import Depends, Header, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,15 +18,20 @@ from app.application.auth.logout import LogoutUseCase
 from app.application.auth.refresh_token import RefreshTokenUseCase
 from app.application.auth.register_user import RegisterUserUseCase
 from app.application.password_policy import PasswordPolicy
-from app.core.exceptions import AuthenticationError
+from app.application.rbac.check_permission import CheckPermissionUseCase
+from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.domain.entities.user import User
+from app.domain.ports.permission_repository import PermissionRepository
 from app.domain.ports.refresh_token_repository import RefreshTokenRepository
+from app.domain.ports.role_repository import RoleRepository
 from app.domain.ports.token_service import TokenService
 from app.domain.ports.user_repository import UserRepository
 from app.infrastructure.db.session import get_async_session
 from app.infrastructure.repositories import (
     JwtTokenService,
+    SqlAlchemyPermissionRepository,
     SqlAlchemyRefreshTokenRepository,
+    SqlAlchemyRoleRepository,
     SqlAlchemyUserRepository,
 )
 
@@ -43,6 +48,14 @@ def get_user_repository(session: SessionDep) -> UserRepository:
 
 def get_refresh_token_repository(session: SessionDep) -> RefreshTokenRepository:
     return SqlAlchemyRefreshTokenRepository(session)
+
+
+def get_role_repository(session: SessionDep) -> RoleRepository:
+    return SqlAlchemyRoleRepository(session)
+
+
+def get_permission_repository(session: SessionDep) -> PermissionRepository:
+    return SqlAlchemyPermissionRepository(session)
 
 
 def get_token_service() -> TokenService:
@@ -90,8 +103,16 @@ def get_current_user_use_case(
     return GetCurrentUserUseCase(users)
 
 
+def get_check_permission_use_case(
+    users: Annotated[UserRepository, Depends(get_user_repository)],
+    roles: Annotated[RoleRepository, Depends(get_role_repository)],
+) -> CheckPermissionUseCase:
+    return CheckPermissionUseCase(users, roles)
+
+
 # -------- authenticated user dependency --------
 async def get_current_user(
+    request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
     tokens: Annotated[TokenService, Depends(get_token_service)],
     users: Annotated[UserRepository, Depends(get_user_repository)],
@@ -102,10 +123,44 @@ async def get_current_user(
     payload = tokens.verify_access_token(credentials.credentials)
     use_case = GetCurrentUserUseCase(users)
     result = await use_case.execute(payload.sub)
+    # Stash the resolved user on the request state for downstream deps.
+    request.state.user = result.user
     return result.user
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+# -------- require_permission dependency --------
+def require_permission(required_code: str):
+    """FastAPI dependency factory. Usage:
+
+        @router.post("/users", dependencies=[Depends(require_permission("users:create"))])
+
+    Superusers always pass. Non-superusers get their effective permissions
+    computed from the DB. Raises 403 (AuthorizationError) if not granted.
+    """
+
+    async def _checker(
+        current: CurrentUser,
+        checker: Annotated[CheckPermissionUseCase, Depends(get_check_permission_use_case)],
+    ) -> User:
+        result = await checker.execute(current.id, required_code)
+        if not result.allowed:
+            from app.core.logging import get_logger
+
+            get_logger(__name__).warning(
+                "access_denied",
+                user_id=str(current.id),
+                required_permission=required_code,
+                reason=result.reason,
+            )
+            raise AuthorizationError(
+                f"Permiso requerido: {required_code}", code="forbidden"
+            )
+        return current
+
+    return _checker
 
 
 __all__ = [
@@ -114,6 +169,8 @@ __all__ = [
     "get_current_user",
     "get_user_repository",
     "get_refresh_token_repository",
+    "get_role_repository",
+    "get_permission_repository",
     "get_token_service",
     "get_password_policy",
     "get_authenticate_user_use_case",
@@ -121,4 +178,6 @@ __all__ = [
     "get_logout_use_case",
     "get_register_user_use_case",
     "get_current_user_use_case",
+    "get_check_permission_use_case",
+    "require_permission",
 ]
