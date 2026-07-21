@@ -1,5 +1,6 @@
 <script lang="ts">
   import { api, HttpError, type EmployeeOut, type DepartmentOut, type UserOut, type Page } from '$lib/api/client';
+  import { search as globalSearch } from '$lib/stores/search.svelte';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Modal from '$lib/components/ui/Modal.svelte';
@@ -10,10 +11,8 @@
   let departments = $state<DepartmentOut[]>([]);
   let loading = $state(false);
   let error = $state<string | null>(null);
-  let search = $state('');
   let page = $state(1);
   let size = $state(10);
-  let searchTimer: ReturnType<typeof setTimeout> | null = null;
   let actionLoading = $state<string | null>(null);
 
   let modalMode = $state<'create' | 'edit' | 'detail' | 'link' | null>(null);
@@ -32,13 +31,13 @@
   async function loadData() {
     loading = true; error = null;
     try {
-      const [empResult, deptResult] = await Promise.all([api.employees.list({ page, size, search: search || undefined }), api.departments.list()]);
+      const [empResult, deptResult] = await Promise.all([api.employees.list({ page, size, search: globalSearch.query || undefined }), api.departments.list()]);
       employees = empResult.items; meta = empResult.meta; departments = deptResult;
     } catch (err) { error = err instanceof HttpError ? err.message : 'Error.'; }
     finally { loading = false; }
   }
 
-  function onSearchInput() { if (searchTimer) clearTimeout(searchTimer); searchTimer = setTimeout(() => { page = 1; loadData(); }, 300); }
+  function onSearchInput() {}
   function goToPage(p: number) { if (p < 1 || (meta && p > meta.pages)) return; page = p; loadData(); }
   function deptName(id: string | null): string { if (!id) return '—'; return departments.find((d) => d.id === id)?.name ?? '—'; }
   function statusBadge(s: string): string {
@@ -83,7 +82,7 @@
     finally { actionLoading = null; }
   }
 
-  $effect(() => { loadData(); });
+  $effect(() => { page = 1; loadData(); globalSearch.query; });
 </script>
 
 <svelte:head><title>Empleados — ERP System</title></svelte:head>
@@ -91,7 +90,7 @@
 <div class="p-6 md:p-8">
   <div class="mb-6 flex items-center justify-between gap-4">
     <div><h1 class="text-2xl font-bold tracking-tight text-foreground">Empleados</h1><p class="mt-1 text-sm text-foreground-muted">{meta ? `${meta.total} empleado(s)` : 'Cargando...'}</p></div>
-    <div class="flex items-center gap-3"><input type="text" placeholder="Buscar..." bind:value={search} oninput={onSearchInput} class="w-56 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" /><Button onclick={openCreate}>Crear empleado</Button></div>
+    <div class="flex items-center gap-3"><Button onclick={openCreate}>Crear empleado</Button></div>
   </div>
 
   {#if error}<div class="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error}</div>{/if}

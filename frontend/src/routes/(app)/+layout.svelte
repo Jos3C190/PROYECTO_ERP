@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import { page } from '$app/state';
   import { session } from '$lib/stores/session.svelte';
   import { permissions } from '$lib/stores/permissions.svelte';
+  import { search } from '$lib/stores/search.svelte';
   import { api } from '$lib/api/client';
   import Sidebar from '$lib/components/ui/Sidebar.svelte';
   import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
@@ -16,6 +18,12 @@
   let sidebarCollapsed = $state(false);
   let mobileOpen = $state(false);
   let loading = $state(false);
+  let searchInput = $state(search.query);
+
+  // Rutas que soportan búsqueda global
+  const SEARCHABLE_ROUTES = ['/users', '/employees'];
+
+  let showSearch = $derived(SEARCHABLE_ROUTES.includes(page.url.pathname));
 
   async function handleLogout() {
     loading = true;
@@ -29,6 +37,19 @@
   }
 
   function closeMobile() { mobileOpen = false; }
+
+  function onSearchInput(e: Event) {
+    const v = (e.target as HTMLInputElement).value;
+    searchInput = v;
+    search.setDebounced(v, 300);
+  }
+
+  // Clear search when route changes
+  $effect(() => {
+    const _path = page.url.pathname;
+    search.clear();
+    searchInput = '';
+  });
 </script>
 
 <div class="flex h-screen overflow-hidden bg-surface">
@@ -49,13 +70,13 @@
 
   <!-- Main content -->
   <div class="flex flex-1 flex-col overflow-hidden">
-    <header class="flex h-14 flex-none items-center justify-between border-b border-border bg-surface px-4 md:px-6">
-      <!-- Left -->
-      <div class="flex items-center gap-2">
+    <header class="flex h-14 flex-none items-center justify-between gap-3 border-b border-border bg-surface px-4 md:px-6">
+      <!-- Left: mobile menu + collapse + search -->
+      <div class="flex flex-1 items-center gap-2">
         <button
           type="button"
           onclick={() => (mobileOpen = true)}
-          class="flex h-8 w-8 items-center justify-center rounded-md text-foreground-muted hover:bg-surface-hover hover:text-foreground md:hidden"
+          class="flex h-8 w-8 flex-none items-center justify-center rounded-md text-foreground-muted hover:bg-surface-hover hover:text-foreground md:hidden"
           aria-label="Abrir menú"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
@@ -63,15 +84,28 @@
         <button
           type="button"
           onclick={() => (sidebarCollapsed = !sidebarCollapsed)}
-          class="hidden h-8 w-8 items-center justify-center rounded-md text-foreground-muted hover:bg-surface-hover hover:text-foreground md:flex"
+          class="hidden h-8 w-8 flex-none items-center justify-center rounded-md text-foreground-muted hover:bg-surface-hover hover:text-foreground md:flex"
           aria-label="Colapsar sidebar"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="transition-transform duration-200 {sidebarCollapsed ? 'rotate-180' : ''}"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
+
+        {#if showSearch}
+          <div class="relative flex-1 max-w-md">
+            <svg class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-subtle" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+            <input
+              type="text"
+              value={searchInput}
+              oninput={onSearchInput}
+              placeholder="Buscar..."
+              class="h-8 w-full rounded-md border border-border bg-surface-muted pl-8 pr-3 text-[13px] text-foreground placeholder:text-foreground-subtle focus:border-primary focus:bg-surface focus:shadow-glow focus:outline-none"
+            />
+          </div>
+        {/if}
       </div>
 
       <!-- Right -->
-      <div class="flex items-center gap-2">
+      <div class="flex flex-none items-center gap-2">
         <span class="hidden text-[13px] text-foreground-muted lg:block">{session.user?.email}</span>
         <ThemeToggle />
         <Button variant="secondary" size="sm" onclick={handleLogout} disabled={loading}>

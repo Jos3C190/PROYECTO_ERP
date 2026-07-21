@@ -1,5 +1,6 @@
 <script lang="ts">
   import { api, HttpError, type UserOut, type Page } from '$lib/api/client';
+  import { search as globalSearch } from '$lib/stores/search.svelte';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Modal from '$lib/components/ui/Modal.svelte';
@@ -9,10 +10,8 @@
   let meta = $state<{ page: number; size: number; total: number; pages: number } | null>(null);
   let loading = $state(false);
   let error = $state<string | null>(null);
-  let search = $state('');
   let page = $state(1);
   let size = $state(10);
-  let searchTimer: ReturnType<typeof setTimeout> | null = null;
   let actionLoading = $state<string | null>(null);
 
   // Modal state
@@ -32,18 +31,13 @@
     loading = true;
     error = null;
     try {
-      const result = await api.users.list({ page, size, search: search || undefined });
+      const result = await api.users.list({ page, size, search: globalSearch.query || undefined });
       users = result.items;
       meta = result.meta;
     } catch (err) {
       if (err instanceof HttpError) error = err.message;
       else error = 'Error al cargar usuarios.';
     } finally { loading = false; }
-  }
-
-  function onSearchInput() {
-    if (searchTimer) clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => { page = 1; loadUsers(); }, 300);
   }
 
   function goToPage(p: number) {
@@ -113,7 +107,7 @@
     finally { actionLoading = null; }
   }
 
-  $effect(() => { loadUsers(); });
+  $effect(() => { page = 1; loadUsers(); globalSearch.query; });
 </script>
 
 <svelte:head><title>Usuarios — ERP System</title></svelte:head>
@@ -125,8 +119,6 @@
       <p class="mt-1 text-sm text-foreground-muted">{meta ? `${meta.total} usuario(s)` : 'Cargando...'}</p>
     </div>
     <div class="flex items-center gap-3">
-      <input type="text" placeholder="Buscar..." bind:value={search} oninput={onSearchInput}
-        class="w-56 rounded-xl border border-border bg-surface px-3.5 py-2 text-sm text-foreground placeholder:text-foreground-subtle transition-all focus:border-primary focus:shadow-glow focus:outline-none" />
       <Button onclick={openCreate}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
         Crear usuario
