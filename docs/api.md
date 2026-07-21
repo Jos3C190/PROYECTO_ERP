@@ -1,6 +1,6 @@
 # API Reference
 
-> Status: **Phase 0**. Interactive docs available at `/docs` (Swagger) and
+> Status: **Phase 6 (final)**. Interactive docs at `/docs` (Swagger) and
 > `/redoc` when running in non-production mode.
 
 ## 1. Base URL
@@ -10,50 +10,93 @@
 | Local dev (compose) | `http://localhost:8000` |
 | Prod (Nginx) | `https://<your-domain>/api` (reverse-proxied) |
 
-## 2. Phase 0 endpoints
+## 2. Endpoints
 
-| Method | Path | Description | Auth |
-|--------|------|-------------|------|
-| `GET` | `/` | App name + status + links | None |
-| `GET` | `/health/live` | Liveness probe (no I/O) | None |
-| `GET` | `/health/ready` | Readiness probe (checks DB) | None |
-| `GET` | `/health` | Full health report | None |
-| `GET` | `/openapi.json` | OpenAPI schema (non-prod only) | None |
+### Health (no auth)
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/` | App name + status |
+| `GET` | `/health/live` | Liveness probe (no I/O) |
+| `GET` | `/health/ready` | Readiness probe (DB check) |
+| `GET` | `/health` | Full health report |
 
-## 3. Roadmap
+### Auth
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `POST` | `/api/v1/auth/login` | public (rate-limited 10/min) | Login, returns access+refresh tokens |
+| `POST` | `/api/v1/auth/refresh` | public (rate-limited 30/min) | Rotate refresh token (reuse detection) |
+| `POST` | `/api/v1/auth/logout` | authenticated | Revoke refresh token |
+| `GET` | `/api/v1/auth/me` | authenticated | Current user profile |
+| `GET` | `/api/v1/auth/me/permissions` | authenticated | Effective permissions |
 
-| Phase | Endpoint group |
-|-------|----------------|
-| 1 | `/api/v1/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/password-reset` |
-| 1 | `/api/v1/me`, `/me/permissions`, `/me/sessions` |
-| 1 | `/api/v1/users` CRUD |
-| 2 | `/api/v1/roles` CRUD, `/api/v1/permissions`, role/permission assignment |
-| 3 | `/api/v1/employees` CRUD, `/api/v1/departments` |
-| 4 | `/api/v1/audit-logs` (read-only, paginated, filtered) |
-| 5 | (frontend-only) dashboard, sidebar |
+### Users (require_permission)
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `GET` | `/api/v1/users` | `users:read` | List users (paginated, search) |
+| `GET` | `/api/v1/users/{id}` | `users:read` | Get user by id |
+| `POST` | `/api/v1/users` | `users:create` | Create user |
+| `PATCH` | `/api/v1/users/{id}` | `users:update` | Update user (active/superadmin) |
+| `POST` | `/api/v1/users/{id}/force-password-reset` | `users:force_password_reset` | Force password reset |
+| `POST` | `/api/v1/users/{id}/unlock` | `users:unlock` | Unlock account |
+| `DELETE` | `/api/v1/users/{id}` | `users:deactivate` | Deactivate (soft delete) |
 
-## 4. Conventions
+### Roles & Permissions (require_permission)
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `GET` | `/api/v1/roles` | `roles:read` | List roles (with permissions) |
+| `GET` | `/api/v1/roles/permissions` | `permissions:read` | Permission catalogue |
+| `GET` | `/api/v1/roles/{id}` | `roles:read` | Get role by id |
+| `POST` | `/api/v1/roles` | `roles:create` | Create role |
+| `PATCH` | `/api/v1/roles/{id}` | `roles:update` | Update role |
+| `DELETE` | `/api/v1/roles/{id}` | `roles:delete` | Delete role (non-system) |
+| `PUT` | `/api/v1/roles/{id}/permissions` | `permissions:manage` | Set role permissions (matrix) |
+| `POST` | `/api/v1/roles/assign` | `roles:assign` | Assign role to user |
+| `POST` | `/api/v1/roles/revoke` | `roles:revoke` | Revoke role from user |
+| `GET` | `/api/v1/roles/users/{id}/roles` | `roles:read` | Roles assigned to a user |
 
-- **Auth**: `Authorization: Bearer <access_token>` for protected endpoints.
-  Refresh token is an httpOnly, Secure, SameSite=Strict cookie.
-- **Errors**: uniform JSON body `{ "code": "...", "message": "..." }` with the
-  appropriate HTTP status. Client messages are generic; details are logged
-  server-side only.
-- **Pagination**: `?page=1&size=20` for small catalogues; `?cursor=...&size=50`
-  for the audit log (keyset over `created_at`).
-- **IDs**: all resource IDs are UUIDs.
-- **Versioning**: API is under `/api/v1`. Breaking changes bump the version.
+### Employees (require_permission)
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `GET` | `/api/v1/employees` | `employees:read` | List employees (paginated, search, filters) |
+| `GET` | `/api/v1/employees/{id}` | `employees:read` | Get employee by id |
+| `POST` | `/api/v1/employees` | `employees:create` | Create employee |
+| `PATCH` | `/api/v1/employees/{id}` | `employees:update` | Update employee |
+| `DELETE` | `/api/v1/employees/{id}` | `employees:delete` | Delete employee (soft) |
+| `POST` | `/api/v1/employees/{id}/link-user` | `employees:update` | Link employee to user account |
+| `POST` | `/api/v1/employees/{id}/unlink-user` | `employees:update` | Unlink user account |
 
-## 5. Security headers (Phase 0, already applied)
+### Departments (require_permission)
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `GET` | `/api/v1/departments` | `employees:read` | List departments |
+| `GET` | `/api/v1/departments/{id}` | `employees:read` | Get department by id |
+| `POST` | `/api/v1/departments` | `departments:manage` | Create department |
+| `PATCH` | `/api/v1/departments/{id}` | `departments:manage` | Update department |
+| `DELETE` | `/api/v1/departments/{id}` | `departments:manage` | Delete department (if empty) |
 
+### Audit Log (read-only)
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `GET` | `/api/v1/audit-logs` | `audit_log:read` | List audit entries (cursor pagination, filters) |
+
+## 3. Conventions
+
+- **Auth**: `Authorization: Bearer <access_token>`. Refresh token as httpOnly
+  Secure SameSite=Strict cookie on `/api/v1/auth` path.
+- **Errors**: `{ "code": "...", "message": "..." }` with HTTP status. Generic
+  client messages; details in server logs only.
+- **Pagination**: `?page=1&size=20` for catalogues; `?cursor=...&limit=50`
+  for audit log (keyset over `created_at DESC, id DESC`).
+- **IDs**: all UUIDs.
+- **Rate limiting**: login 10/min, refresh 30/min, reset 5/min per IP.
+
+## 4. Security headers (applied)
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Permissions-Policy: geolocation=(), microphone=(), camera=()`
-- `Content-Security-Policy`: conservative default; tightened per environment.
+- `Content-Security-Policy`: conservative default
 - `Strict-Transport-Security` (production only)
 
-## 6. CORS
-
-Allowed origins come from `CORS_ORIGINS` (comma-separated). Credentials are
-allowed. `*` is **never** used with credentials.
+## 5. CORS
+Origins from `CORS_ORIGINS` env. Credentials allowed. `*` never used with credentials.

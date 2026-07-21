@@ -101,20 +101,20 @@ Client ─► CORS ─► RequestContext (request_id, access log) ─► Securit
 - **Optional Redis** (`--profile redis`): used from Phase 1+ for rate limiting,
   token revocation list, permission cache.
 
-## 6. OWASP mapping (target state per phase)
+## 6. OWASP mapping (final state)
 
-| OWASP Top 10 (2021) | Mitigation | Phase |
+| OWASP Top 10 (2021) | Mitigation | Status |
 |---|---|---|
-| A01 Broken Access Control | `require_permission(...)` dependency, deny-by-default, 403 tests per endpoint | 2 |
-| A02 Cryptographic Failures | Argon2id, JWT secrets from env, short access TTL, refresh rotation | 1 |
-| A03 Injection | SQLAlchemy parameterised queries only, Pydantic input validation | 1+ |
-| A04 Insecure Design | Abuse-case modelling + tests (brute force, IDOR, privilege escalation) | 1+ |
-| A05 Security Misconfiguration | Security headers, restricted CORS, debug off in prod, generic errors | 0 ✅ |
-| A06 Vulnerable Components | Pinned versions, `pip-audit`/`pnpm audit` documented | 0 ✅ |
-| A07 Identification & Auth Failures | Rate limit, progressive lockout, session invalidation on password change | 1 |
-| A08 Software & Data Integrity Failures | Audit log append-only, no UPDATE/DELETE endpoints | 4 |
-| A09 Logging & Monitoring Failures | Structured logs, security events in audit log, no secret logging | 0/4 |
-| A10 SSRF | N/A in Phase 0; documented policy for future external integrations | — |
+| A01 Broken Access Control | `require_permission(...)` dependency on every sensitive endpoint, deny-by-default, superuser shortcut, 403 tests per endpoint | ✅ |
+| A02 Cryptographic Failures | Argon2id, JWT secrets from env, short access TTL (15min), refresh rotation with reuse detection | ✅ |
+| A03 Injection | SQLAlchemy parameterised queries only, Pydantic input validation on every endpoint | ✅ |
+| A04 Insecure Design | Abuse-case tests (brute force lockout, self-deactivate blocked, last-superadmin protected, cycle detection in dept hierarchy) | ✅ |
+| A05 Security Misconfiguration | Security headers (CSP, X-Frame-Options, HSTS in prod), restricted CORS, debug off in prod, generic error messages | ✅ |
+| A06 Vulnerable Components | Pinned versions in pyproject/package.json, `pip-audit`/`pnpm audit` documented | ✅ |
+| A07 Identification & Auth Failures | Rate limiting (10/min login, 30/min refresh), progressive lockout (5 attempts → backoff), refresh rotation with reuse detection → revoke all sessions | ✅ |
+| A08 Software & Data Integrity Failures | Audit log append-only (no UPDATE/DELETE endpoints, repo only exposes add+list), AuditService never raises | ✅ |
+| A09 Logging & Monitoring Failures | Structured logs (structlog, JSON in prod), audit log captures security events (login success/failure, IP, user agent), no secret logging (mask_token helper) | ✅ |
+| A10 SSRF | N/A in current scope; documented policy: no outbound calls to user-supplied URLs. Future integrations (email/storage) must validate and whitelist destinations. | ✅ (N/A) |
 
 ## 7. ADRs (Architecture Decision Records, short form)
 
