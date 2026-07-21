@@ -211,6 +211,27 @@ export interface EmployeeOut {
   updated_at: string | null;
 }
 
+export interface AuditLogOut {
+  id: string;
+  user_id: string | null;
+  action: string;
+  resource_type: string | null;
+  resource_id: string | null;
+  before_state: Record<string, unknown> | null;
+  after_state: Record<string, unknown> | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  status: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface AuditLogPage {
+  items: AuditLogOut[];
+  next_cursor: string | null;
+  has_more: boolean;
+}
+
 export const api = {
   auth: {
     login: (login: string, password: string) =>
@@ -321,5 +342,25 @@ export const api = {
       }),
     unlinkUser: (empId: string) =>
       apiFetch<{ message: string; code: string }>(`/employees/${empId}/unlink-user`, { method: 'POST' })
+  },
+  audit: {
+    list: (params: {
+      limit?: number;
+      cursor?: string;
+      user_id?: string;
+      action?: string;
+      resource_type?: string;
+      status?: string;
+    } = {}) => {
+      const sp = new URLSearchParams();
+      if (params.limit) sp.set('limit', String(params.limit));
+      if (params.cursor) sp.set('cursor', params.cursor);
+      if (params.user_id) sp.set('user_id', params.user_id);
+      if (params.action) sp.set('action', params.action);
+      if (params.resource_type) sp.set('resource_type', params.resource_type);
+      if (params.status) sp.set('status', params.status);
+      const qs = sp.toString();
+      return apiFetch<AuditLogPage>(`/audit-logs${qs ? `?${qs}` : ''}`);
+    }
   }
 };

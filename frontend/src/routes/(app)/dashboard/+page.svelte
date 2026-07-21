@@ -91,7 +91,10 @@
             <a href="/departments" class="text-primary hover:underline">Departamentos →</a>
             <span class="block text-xs text-foreground-muted">Jerarquía de departamentos</span>
           </li>
-          <li class="text-foreground-muted">· Bitácora (Fase 4)</li>
+          <li>
+            <a href="/audit-log" class="text-primary hover:underline">Bitácora →</a>
+            <span class="block text-xs text-foreground-muted">Registro inmutable de eventos</span>
+          </li>
         </ul>
       </Card>
     </div>
