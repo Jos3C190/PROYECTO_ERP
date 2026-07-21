@@ -26,49 +26,48 @@
 </script>
 
 <aside
-  class="flex h-full flex-col border-r border-border glass transition-all duration-300 {collapsed ? 'w-16' : 'w-64'}"
+  class="flex h-full flex-col border-r border-border bg-surface transition-all duration-200 {collapsed ? 'w-[52px]' : 'w-60'}"
   role="navigation"
   aria-label="Navegación principal"
 >
-  <div class="flex items-center gap-3 border-b border-border px-4 py-4 {collapsed ? 'justify-center' : ''}">
-    <div class="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-foreground text-surface">
-      <span class="text-sm font-bold">E</span>
+  <!-- Brand -->
+  <div class="flex h-14 flex-none items-center gap-2.5 px-4 border-b border-border {collapsed ? 'justify-center' : ''}">
+    <div class="flex h-7 w-7 flex-none items-center justify-center rounded-md bg-foreground text-surface">
+      <span class="text-xs font-bold">E</span>
     </div>
     {#if !collapsed}
-      <div class="min-w-0">
-        <p class="truncate text-sm font-bold leading-tight text-foreground">ERP System</p>
-        <p class="truncate text-xs text-foreground-subtle">{session.user?.username ?? '...'}</p>
-      </div>
+      <span class="truncate text-sm font-semibold text-foreground">ERP System</span>
     {/if}
   </div>
 
-  <nav class="flex-1 overflow-y-auto px-2 py-3">
-    {#each NAV_GROUPS as group (group.label)}
+  <!-- Nav -->
+  <nav class="flex-1 overflow-y-auto py-2 {collapsed ? 'px-1.5' : 'px-2'}">
+    {#each NAV_GROUPS as group, gi (group.label)}
       {#if group.items.some(isVisible)}
-        {#if !collapsed}
-          <p class="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-foreground-subtle">{group.label}</p>
+        {#if collapsed}
+          {#if gi > 0}<div class="mx-1 my-2 border-t border-border"></div>{/if}
         {:else}
-          <div class="mx-2 my-2 border-t border-border"></div>
+          <p class="px-3 pt-3 pb-1 text-[11px] font-medium uppercase tracking-wide text-foreground-subtle">{group.label}</p>
         {/if}
         {#each group.items as item (item.route)}
           {#if isVisible(item)}
             <a
               href={item.route}
               onclick={handleClick}
-              class="group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200 {isActive(item.route) ? 'bg-primary/10 font-semibold text-primary shadow-soft' : 'text-foreground-muted hover:bg-surface-hover hover:text-foreground'} {collapsed ? 'justify-center' : ''}"
+              class="group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors duration-150 {isActive(item.route) ? 'bg-surface-hover font-medium text-foreground' : 'text-foreground-muted hover:bg-surface-hover/60 hover:text-foreground'} {collapsed ? 'justify-center' : ''}"
               title={collapsed ? item.label : ''}
               aria-current={isActive(item.route) ? 'page' : undefined}
             >
-              {#if isActive(item.route)}
-                <div class="absolute left-0 top-1/2 h-6 -translate-y-1/2 rounded-r-full bg-primary" style="width: 3px;"></div>
+              {#if isActive(item.route) && !collapsed}
+                <div class="absolute left-0 top-1/2 h-4 -translate-y-1/2 w-0.5 rounded-r bg-foreground"></div>
               {/if}
-              <svg class="flex-none transition-transform duration-200 group-hover:scale-110" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <svg class="flex-none {isActive(item.route) ? 'text-foreground' : 'text-foreground-subtle'}" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d={item.icon} />
               </svg>
               {#if !collapsed}
-                <span class="truncate">{item.label}</span>
+                <span class="truncate flex-1">{item.label}</span>
                 {#if !item.implemented}
-                  <span class="ml-auto flex-none rounded-md bg-foreground-muted/10 px-1.5 py-0.5 text-[10px] font-medium text-foreground-subtle">próx.</span>
+                  <span class="flex-none text-[10px] text-foreground-subtle">·</span>
                 {/if}
               {/if}
             </a>
@@ -77,4 +76,19 @@
       {/if}
     {/each}
   </nav>
+
+  <!-- User -->
+  {#if !collapsed}
+    <div class="flex-none border-t border-border px-3 py-2.5">
+      <div class="flex items-center gap-2.5 rounded-md px-1.5 py-1">
+        <div class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-foreground-muted/15 text-xs font-medium text-foreground-muted">
+          {session.user?.username?.[0]?.toUpperCase() ?? '?'}
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-xs font-medium text-foreground">{session.user?.username ?? '...'}</p>
+          <p class="truncate text-[11px] text-foreground-subtle">{session.user?.is_superuser ? 'Super Admin' : 'Usuario'}</p>
+        </div>
+      </div>
+    </div>
+  {/if}
 </aside>
