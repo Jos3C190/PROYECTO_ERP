@@ -36,7 +36,7 @@ async def test_list_users_requires_superuser(e2e_client) -> None:
     headers = await _login_as(e2e_client, "normal", "Strong!Passw0rd2026")
     r = await e2e_client.get("/api/v1/users", headers=headers)
     assert r.status_code == 403
-    assert r.json()["code"] == "superuser_required"
+    assert r.json()["code"] == "forbidden"
 
 
 async def test_list_users_requires_auth(e2e_client) -> None:
