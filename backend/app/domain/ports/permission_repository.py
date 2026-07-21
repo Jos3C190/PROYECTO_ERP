@@ -1,0 +1,22 @@
+"""Port: PermissionRepository."""
+from __future__ import annotations
+
+import uuid
+from collections.abc import Sequence
+from typing import Protocol
+
+from app.domain.entities.rbac import Permission
+
+
+class PermissionRepository(Protocol):
+    async def get_by_id(self, permission_id: uuid.UUID) -> Permission | None: ...
+
+    async def get_by_code(self, code: str) -> Permission | None: ...
+
+    async def list_all(self) -> Sequence[Permission]: ...
+
+    async def list_by_module(self, module: str) -> Sequence[Permission]: ...
+
+    async def add(self, permission: Permission) -> Permission: ...
+
+    async def bulk_add(self, permissions: Sequence[Permission]) -> int: ...
