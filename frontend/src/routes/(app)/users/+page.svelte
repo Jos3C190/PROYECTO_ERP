@@ -1,8 +1,5 @@
 <script lang="ts">
-  import { session } from '$lib/stores/session.svelte';
-  import { permissions } from '$lib/stores/permissions.svelte';
   import { api, HttpError, type UserOut, type Page } from '$lib/api/client';
-  import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
 
@@ -85,40 +82,12 @@
     }
   }
 
-  async function handleLogout() {
-    try { await api.auth.logout(); } catch { /* ignore */ }
-    session.clear();
-    permissions.clear();
-    window.location.href = '/login';
-  }
-
   $effect(() => { loadUsers(); });
 </script>
 
 <svelte:head><title>Usuarios — ERP System</title></svelte:head>
 
-<main class="min-h-screen bg-surface-muted">
-  <header class="border-b border-border bg-surface">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-      <div class="flex items-center gap-3">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <span class="font-bold">E</span>
-        </div>
-        <div>
-          <p class="text-sm font-semibold leading-tight text-foreground">ERP System</p>
-          <p class="text-xs text-foreground-muted">Gestión de usuarios</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <a href="/dashboard" class="text-sm text-foreground-muted hover:text-foreground">Dashboard</a>
-        <span class="text-sm text-foreground-muted">{session.user?.username}</span>
-        <ThemeToggle />
-        <Button variant="secondary" size="sm" onclick={handleLogout}>Cerrar sesión</Button>
-      </div>
-    </div>
-  </header>
-
-  <section class="mx-auto max-w-7xl px-6 py-8">
+<div class="p-6 md:p-8">
     <div class="mb-6 flex items-center justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-foreground">Usuarios</h1>
@@ -244,5 +213,4 @@
         </div>
       </div>
     {/if}
-  </section>
-</main>
+</div>
