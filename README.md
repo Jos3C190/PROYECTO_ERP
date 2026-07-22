@@ -1,13 +1,9 @@
-# ERP System — Boilerplate (Phase 0 / Cimientos)
+# ERP System — Boilerplate Empresarial
 
-Modular ERP boilerplate built with **FastAPI + SvelteKit 5 + PostgreSQL 16**.
-This repository currently contains **Phase 0** only: the production-grade
-foundation (monorepo, Docker, async DB layer, migrations, security headers,
-health endpoints, no-FOUC theme switch, test harness, docs scaffolding).
-
-Modules with real functionality (Auth, Users, Employees, RBAC, Audit log,
-Dashboard, Sidebar, Dark/Light) are introduced in **Phases 1–6**. See
-`docs/architecture.md` and the master prompt's phase plan.
+Sistema ERP modular construido con **FastAPI + SvelteKit 5 + PostgreSQL 16**.
+Autenticación JWT con rotación de refresh tokens, RBAC dinámico administrable,
+bitácora append-only, gestión de empleados y departamentos, dashboard con
+gráficos, y 17 módulos futuros como mockups en el sidebar.
 
 ---
 
@@ -15,34 +11,47 @@ Dashboard, Sidebar, Dark/Light) are introduced in **Phases 1–6**. See
 
 | Layer       | Technology |
 |-------------|------------|
-| Backend     | Python 3.12, FastAPI (async), SQLAlchemy 2.0 async, Alembic, Pydantic v2, asyncpg, structlog, Argon2, PyJWT |
-| Frontend    | SvelteKit (Svelte 5 runes), TypeScript strict, TailwindCSS, Vitest |
+| Backend     | Python 3.12, FastAPI (async), SQLAlchemy 2.0 async, Alembic, Pydantic v2, asyncpg, structlog, Argon2id, PyJWT |
+| Frontend    | SvelteKit (Svelte 5 runes), TypeScript strict, TailwindCSS, Vitest, design system Geist (Vercel) |
 | Database    | PostgreSQL 16 |
 | Infra       | Docker, Docker Compose v2, Nginx (prod profile), Redis (optional profile) |
 | Tooling     | `uv` (backend deps), `pnpm` (frontend deps), `make` |
 
 ---
 
-## One-command setup
+## Quick start — un solo comando
 
-Requirements: **Docker** (with Compose v2) and **Git**. Nothing else.
+Requisitos: **Docker** (con Compose v2) y **Git**. Nada más.
 
 ```bash
 git clone <repo-url> erp-system && cd erp-system
-make setup          # or: ./scripts/setup.sh
+make setup
 ```
 
-This will:
+O sin Make:
 
-1. Copy `.env.example` → `.env` (with a warning to review secrets).
-2. Build and start `db`, `backend`, `frontend` containers with healthchecks.
-3. Wait for Postgres to be healthy.
-4. Run Alembic migrations automatically (backend startup hook).
-5. Print the final URLs and credentials.
+```bash
+git clone <repo-url> erp-system && cd erp-system
+# En macOS/Linux/Git Bash:
+bash scripts/setup.sh
+# En Windows PowerShell:
+docker compose up -d --build
+# luego esperar a que el backend esté healthy y ejecutar:
+docker compose exec backend python -m seed.seed_data
+```
 
-When it finishes you should have:
+`make setup` hace todo automáticamente:
 
-| Service           | URL |
+1. Copia `.env.example` → `.env`
+2. Construye y levanta los 3 contenedores (db, backend, frontend)
+3. Espera a que Postgres esté healthy
+4. Ejecuta migraciones Alembic automáticamente (al arrancar el backend)
+5. Siembra la base de datos: catálogo de permisos, roles base, super-admin, 25 usuarios demo
+6. Muestra las URLs y credenciales
+
+### URLs
+
+| Servicio           | URL |
 |-------------------|-----|
 | Frontend (Svelte) | http://localhost:5173 |
 | Backend (FastAPI) | http://localhost:8000 |
@@ -50,132 +59,140 @@ When it finishes you should have:
 | ReDoc docs        | http://localhost:8000/redoc |
 | Postgres          | localhost:5432 |
 
-### Seed credentials (Phase 1)
+### Credenciales semilla
 
-After `make seed`, a SUPER_ADMIN user is created with:
-
-| Field | Value |
+| Campo | Valor |
 |-------|-------|
-| Username | `superadmin` |
-| Email | `superadmin@erp-system.dev` |
-| Password | `Cambio!Seguro2026` |
+| Usuario | `superadmin` |
+| Contraseña | `Cambio!Seguro2026` |
 
-> **Rotate this password immediately in any non-local environment.**
-> 25 additional demo users are seeded with password `Demo!Usuario2026`
-> for pagination/search testing.
+> **Cambiar antes de producción.** Ver `.env` para `JWT_SECRET_KEY` y `POSTGRES_PASSWORD`.
 
-Login at http://localhost:5173/login — the frontend redirects there
-automatically when no session is present.
+25 usuarios demo adicionales con contraseña `Demo!Usuario2026`.
 
 ---
 
-## Common commands
+## Comandos comunes
 
 ```bash
-make up              # start dev stack
-make down            # stop dev stack
-make logs            # tail logs
-make ps              # container status
-make test            # all tests (backend + frontend)
-make test-backend    # backend tests with coverage
-make test-frontend   # frontend vitest
-make reset-db        # destructive: drop & migrate the DB
-make clean           # remove containers + volumes + images
-make prod-up         # build & start the hardened prod profile (with nginx)
+make up              # levantar stack
+make down            # detener stack
+make logs            # ver logs
+make ps              # estado de contenedores
+make test            # todos los tests (backend + frontend)
+make test-backend    # tests backend
+make test-frontend   # tests frontend
+make seed            # re-sembrar la base de datos
+make reset-db        # wipe + migrar (destructivo)
+make clean           # remover todo (contenedores, volúmenes, imágenes)
+make lint            # lint backend + frontend
+make prod-up         # levantar perfil producción (con Nginx)
 ```
 
 ---
 
-## Project structure
+## Estructura del proyecto
 
 ```
 erp-system/
-├── compose.yaml              # dev stack
-├── compose.prod.yaml         # hardened prod overlay (+ nginx)
-├── Makefile
-├── .env.example
-├── scripts/                  # setup.sh, seed.sh, reset-db.sh, run-tests.sh
-├── docs/                     # architecture, db schema, rbac, api, design-system
+├── compose.yaml              # dev stack (db + backend + frontend)
+├── compose.prod.yaml         # prod overlay (+ Nginx, non-root)
+├── Makefile                  # targets: up/down/test/seed/reset-db/clean
+├── .env.example              # template de variables de entorno
+├── scripts/
+│   ├── setup.sh              # un solo comando: build + migrate + seed
+│   ├── seed.sh               # sembrar base de datos
+│   ├── reset-db.sh           # wipe + migrar
+│   └── run-tests.sh          # runner unificado de tests
+├── docs/                     # arquitectura, schema DB, RBAC, API, design system
 ├── backend/                  # FastAPI (Clean / Hexagonal)
-│   ├── Dockerfile
-│   ├── pyproject.toml
-│   ├── alembic/              # versioned migrations (async)
+│   ├── Dockerfile            # multi-stage (dev + prod)
+│   ├── pyproject.toml        # deps pinned, ruff, pytest, mypy
+│   ├── alembic/              # migraciones versionadas (async)
 │   ├── app/
-│   │   ├── main.py
-│   │   ├── core/             # config, security, logging, exceptions, deps
-│   │   ├── domain/           # entities + ports (no framework deps)
-│   │   ├── application/      # use cases
-│   │   ├── infrastructure/   # db engine/session, ORM models, repositories
-│   │   ├── api/v1/           # routers + Pydantic DTOs
-│   │   └── middlewares/      # security headers, (audit, rate limit: phase 1+)
-│   ├── seed/                 # seed scripts
-│   └── tests/                # unit / integration / e2e
-└── frontend/                 # SvelteKit 5 (feature-sliced)
-    ├── Dockerfile
-    ├── package.json
-    ├── src/
-    │   ├── app.html          # no-FOUC theme script
-    │   ├── routes/           # thin route files only
-    │   └── lib/              # api, components/ui, features, stores, types, utils
-    └── tests/
+│   │   ├── main.py           # app factory + lifespan (migraciones on startup)
+│   │   ├── core/             # config, security, logging, exceptions
+│   │   ├── domain/           # entidades + puertos (sin deps de framework)
+│   │   ├── application/      # casos de uso (auth, users, rbac, employees, audit)
+│   │   ├── infrastructure/   # DB engine, ORM models, repos concretos
+│   │   ├── api/v1/           # routers + DTOs + deps + exception handlers
+│   │   └── middlewares/      # security headers, request context, rate limit
+│   ├── seed/                 # seed de permisos, roles, super-admin, demo
+│   └── tests/                # unit (fakes) + integration + e2e (DB real)
+├── frontend/                 # SvelteKit 5 (feature-sliced, Geist design)
+│   ├── Dockerfile            # multi-stage (dev + prod, adapter-node)
+│   ├── package.json          # pnpm, Svelte 5, Tailwind, Vitest
+│   ├── src/
+│   │   ├── app.html          # no-FOUC theme script
+│   │   ├── app.css           # tokens Geist (claro/oscuro) + utilidades
+│   │   ├── routes/           # login, dashboard, users, roles, employees, etc.
+│   │   └── lib/
+│   │       ├── api/          # cliente con interceptor refresh
+│   │       ├── components/ui/  # Button, Card, Modal, Badge, Avatar, Sidebar
+│   │       ├── features/dashboard/  # KpiCard, AreaChart, DonutChart, etc.
+│   │       ├── stores/       # session, theme, permissions, search
+│   │       └── navigation.ts # sidebar metadata (6 implementados + 17 mockups)
+│   └── tests/                # vitest + testing-library
+└── nginx/                    # reverse proxy para prod
 ```
-
-Full layering rules in `docs/architecture.md`.
 
 ---
 
-## Security posture
+## Seguridad
 
-Implemented and verified (OWASP A01-A10, see `docs/architecture.md`):
-
-- Argon2id password hashing (configurable time/memory cost).
-- JWT access tokens (15 min) + refresh token rotation with reuse detection
-  (revokes all sessions on reuse).
-- Progressive lockout (5 failed attempts → backoff).
-- Rate limiting: login 10/min, refresh 30/min, reset 5/min per IP.
-- `require_permission("code")` dependency on every sensitive endpoint
-  (deny-by-default, superuser shortcut).
-- Security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`,
-  `Permissions-Policy`, conservative CSP, `Strict-Transport-Security` (prod).
-- CORS restricted to explicit origins (never `*` with credentials).
-- Debug mode off in prod profile; generic error responses to clients.
-- `.env`-based secrets; no hardcoded credentials in source.
-- Audit log append-only (no UPDATE/DELETE endpoints).
-- Structured logging (JSON in prod); security events in audit log; no secret logging.
+- Argon2id para contraseñas (configurable via env)
+- JWT access (15 min) + refresh rotation con detección de reuso
+- Rate limiting: login 10/min, refresh 30/min por IP
+- Bloqueo progresivo tras 5 intentos fallidos
+- `require_permission("code")` en cada endpoint sensible (deny-by-default)
+- Cabeceras OWASP: CSP, X-Frame-Options, HSTS (prod), Referrer-Policy
+- CORS restrictivo (nunca `*` con credenciales)
+- Bitácora append-only (sin endpoints de UPDATE/DELETE)
+- Ver `docs/architecture.md` para el mapeo OWASP A01-A10 completo
 
 ---
 
 ## Testing
 
-- **Backend**: `pytest` + `pytest-asyncio` + `httpx.AsyncClient` + `pytest-cov`.
-  Unit (in-memory fakes), integration (real Postgres via `test` profile),
-  e2e (full FastAPI app). Target coverage ≥ 80% on `domain/` and `application/`.
-- **Frontend**: `Vitest` + `@testing-library/svelte` (Phase 0: harness +
-  smoke tests). Playwright arrives with Phase 5/6.
-
-Run everything:
-
 ```bash
-make test
+make test              # 153 backend + 6 frontend = 159 tests
+make test-backend      # pytest con coverage
+make test-frontend     # vitest
 ```
 
----
-
-## Roadmap (master prompt phases)
-
-| Phase | Scope | Status |
-|-------|-------|--------|
-| 0 | Cimientos (this repo) | done |
-| 1a | Auth core (login/JWT/refresh rotation/logout/me + seed + frontend login) | done |
-| 1b | Users CRUD (list/create/update/deactivate/force-reset/unlock + business rules) | done |
-| 2 | RBAC (roles/permissions engine) | done |
-| 3 | Employees + departments | done |
-| 4 | Audit log (append-only) + UI | done |
-| 5 | App shell (sidebar, dashboard, theme polish) | done |
-| 6 | Hardening (OWASP sweep, perf, a11y, coverage, docs) | done |
+- **Unit**: casos de uso con repositorios in-memory (sin DB)
+- **Integration**: repositorios contra Postgres real
+- **E2e**: flujos completos via httpx contra la app FastAPI
+- Cobertura objetivo: ≥80% en `application/` y `domain/`
 
 ---
 
-## License
+## Módulos implementados vs. futuros
+
+| Módulo | Estado |
+|--------|--------|
+| Dashboard | ✅ Mockup premium con gráficos |
+| Autenticación | ✅ Login/JWT/refresh/lockout |
+| Usuarios | ✅ CRUD completo + filtros |
+| Roles y permisos | ✅ RBAC dinámico + matriz |
+| Empleados | ✅ CRUD + departamentos |
+| Departamentos | ✅ Jerarquía con anti-ciclos |
+| Bitácora | ✅ Append-only + paginación |
+| Sidebar + tema | ✅ Geist design, claro/oscuro |
+| Clientes, Proveedores, Productos, Compras, Ventas, Inventario, etc. (17) | Mockup en sidebar |
+
+---
+
+## Documentación
+
+- `docs/architecture.md` — capas, ADRs, OWASP
+- `docs/database-schema.md` — diagrama ER (Mermaid)
+- `docs/rbac-model.md` — motor de permisos
+- `docs/api.md` — endpoints y convenciones
+- `docs/design-system.md` — tokens Geist
+
+---
+
+## Licencia
 
 Proprietary — boilerplate for internal use.

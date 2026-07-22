@@ -8,9 +8,9 @@ run_backend() {
   local scope="${1:-all}"
   echo "[tests] Backend ($scope)..."
   if [[ "$scope" == "all" ]]; then
-    docker compose exec -T backend uv run pytest -ra --cov=app --cov-report=term-missing
+    docker compose exec -T backend uv run pytest -ra
   else
-    docker compose exec -T backend uv run pytest "tests/$scope" -ra --cov=app --cov-report=term-missing
+    docker compose exec -T backend uv run pytest "tests/$scope" -ra
   fi
 }
 
@@ -22,7 +22,7 @@ run_frontend() {
 run_lint() {
   echo "[lint] Backend (ruff)..."
   docker compose exec -T backend uv run ruff check app tests || true
-  echo "[lint] Frontend (eslint + svelte-check)..."
+  echo "[lint] Frontend (svelte-check)..."
   docker compose exec -T frontend pnpm check || true
 }
 
