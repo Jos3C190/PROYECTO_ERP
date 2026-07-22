@@ -3,7 +3,7 @@
 
 .DEFAULT_GOAL := help
 .PHONY: help up down restart logs ps build seed reset-db test test-backend test-frontend \
-        test-unit test-integration test-e2e lint fmt clean setup db-shell backend-shell frontend-shell
+        test-unit test-integration test-e2e lint fmt clean setup db-shell backend-shell frontend-shell security-scan
 
 COMPOSE := docker compose
 COMPOSE_PROD := $(COMPOSE) -f compose.yaml -f compose.prod.yaml --profile prod
@@ -58,6 +58,12 @@ test-e2e: ## Run backend e2e tests only
 
 lint: ## Lint backend and frontend
 	@./scripts/run-tests.sh lint
+
+security-scan: ## Run automated Red Team security scan (OWASP ZAP Baseline + Trivy)
+	@bash ./scripts/security-scan.sh baseline
+
+security-scan-deep: ## Run deep Red Team security scan (OWASP ZAP OpenAPI DAST + Pytest Fuzzing + Trivy)
+	@bash ./scripts/security-scan.sh deep
 
 fmt: ## Format code (backend + frontend)
 	$(COMPOSE) exec backend uv run ruff format app tests

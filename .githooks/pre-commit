@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Git Pre-Commit Hook — Pruebas de Seguridad Rápidas en Backend (Pytest)
+# ==============================================================================
+set -e
+
+echo "======================================================================"
+echo " 🔒 Git Pre-Commit: Validando pruebas de seguridad en Backend..."
+echo "======================================================================"
+
+# Ejecutar tests de límites de seguridad en backend
+if command -v docker >/dev/null 2>&1; then
+    docker compose exec -T backend pytest tests/integration/api/test_security_bounds.py -v
+else
+    echo "⚠️ Docker no está disponible, omitiendo pre-commit scan."
+fi
+
+echo "✅ Pre-Commit de seguridad validado con éxito."

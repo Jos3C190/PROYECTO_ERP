@@ -22,6 +22,9 @@ CYAN='\033[0;36m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Configurar Git Hooks automáticamente
+git config core.hooksPath .githooks 2>/dev/null || true
+
 log()  { printf "${GREEN}[setup]${NC} %s\n" "$*"; }
 warn() { printf "${YELLOW}[setup]${NC} %s\n" "$*"; }
 info() { printf "${CYAN}[setup]${NC} %s\n" "$*"; }

@@ -110,6 +110,35 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # ---------------- Security Scanners (optional, profile: security) ----------------
+  security-zap:
+    profiles: [security]
+    image: ghcr.io/zaproxy/zaproxy:stable
+    command: zap-baseline.py -t http://backend:8000 -J security-report.json -r security-report.html -I
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./reports:/zap/wrk/:rw
+
+  security-trivy:
+    profiles: [security, security-deep]
+    image: aquasec/trivy:latest
+    command: fs --format json --output /reports/trivy-report.json /src
+    volumes:
+      - .:/src:ro
+      - ./reports:/reports:rw
+
+  security-zap-deep:
+    profiles: [security-deep]
+    image: ghcr.io/zaproxy/zaproxy:stable
+    command: zap-api-scan.py -t http://backend:8000/openapi.json -f openapi -J security-deep-report.json -r security-deep-report.html
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./reports:/zap/wrk/:rw
+
 volumes:
   pgdata:
   redis-data:

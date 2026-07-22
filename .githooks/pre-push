@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Git Pre-Push Hook — Auditoría Completa de Seguridad (Red Team Scan)
+# ==============================================================================
+set -e
+
+echo "======================================================================"
+echo " 🛡️ Git Pre-Push: Ejecutando Escaneo de Seguridad Completo (Red Team)..."
+echo "======================================================================"
+
+if [ -f "./scripts/security-scan.ps1" ] && command -v powershell.exe >/dev/null 2>&1; then
+    powershell.exe -ExecutionPolicy Bypass -File "./scripts/security-scan.ps1"
+elif [ -f "./scripts/security-scan.sh" ]; then
+    bash ./scripts/security-scan.sh baseline
+fi
+
+echo "✅ Pre-Push de seguridad completado. Procediendo con el push."
