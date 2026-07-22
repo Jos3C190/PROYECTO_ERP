@@ -12,6 +12,9 @@ try {
     $notify.BalloonTipText = $Message
     $notify.Visible = $true
     $notify.ShowBalloonTip(4000)
+    Start-Sleep -Seconds 2
+    $notify.Visible = $false
+    $notify.Dispose()
 } catch {
     # Silence error
 }
