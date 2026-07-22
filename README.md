@@ -7,6 +7,14 @@ gráficos, y 17 módulos futuros como mockups en el sidebar.
 
 ---
 
+## Vista Previa
+
+| Modo Claro | Modo Oscuro |
+| :---: | :---: |
+| ![Dashboard Light](docs/images/dashboard-light.png) | ![Dashboard Dark](docs/images/dashboard-dark.png) |
+
+---
+
 ## Stack
 
 | Layer       | Technology |
