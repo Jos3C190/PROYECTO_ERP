@@ -166,3 +166,12 @@ El middleware de la aplicación configura automáticamente las cabeceras HTTP de
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Content-Security-Policy`: Restringe el origen de scripts, estilos e imágenes.
 - **CORS:** Restringido a los dominios configurados en `BACKEND_CORS_ORIGINS`. Nunca se permite `*` en combinación con `allow_credentials=True`.
+
+---
+
+## 7. Sistema Red Team / Blue Team y Git Hooks
+
+Para conocer la arquitectura completa de escáneres DAST en contenedor (OWASP ZAP OpenAPI scan), auditoría de dependencias (Trivy), pruebas adversariales (Pytest fuzzing) y el bloqueo automático mediante `.githooks` (`pre-commit` y `pre-push`), consulta el documento dedicado:
+
+👉 **[docs/red-team-blue-team.md](file:///d:/josec/Documents/Ciclo%20X/TRANSACCIONES%20COMERCIALES%20POR%20MEDIOS%20ELECTR%C3%93NICOS%20SECCI%C3%93N%20A/PROYECTO_ERP/docs/red-team-blue-team.md)**
+

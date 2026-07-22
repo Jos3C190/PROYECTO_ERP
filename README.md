@@ -198,6 +198,11 @@ make test-frontend     # vitest
 - `docs/rbac-model.md` — motor de permisos
 - `docs/api.md` — endpoints y convenciones
 - `docs/design-system.md` — tokens Geist
+- `docs/security-and-audit.md` — guía de seguridad y auditoría
+- `docs/red-team-blue-team.md` — arquitectura Red Team / Blue Team, escáneres ZAP/Trivy, Git Hooks y notificaciones
+- `docs/module-creation-guide.md` — guía paso a paso para la creación de nuevos módulos
+- `docs/testing-strategy.md` — estrategia de testing (Pytest + Vitest)
+- `docs/troubleshooting-faq.md` — resolución de problemas y FAQ
 
 ---
 
