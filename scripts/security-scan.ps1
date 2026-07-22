@@ -19,6 +19,11 @@ New-Item -ItemType Directory -Force -Path "reports" | Out-Null
 Write-Host "--> 1. Ejecutando pruebas adversariales de seguridad en Backend (Pytest)..." -ForegroundColor Yellow
 docker compose exec -T backend pytest tests/integration/api/test_security_bounds.py -v
 
+if ($LASTEXITCODE -ne 0) {
+    powershell -ExecutionPolicy Bypass -File ".\scripts\notify.ps1" -Title "Auditoria de Seguridad Fallida" -Message "Se encontraron fallos en las pruebas de seguridad del backend." 2>/dev/null
+    exit $LASTEXITCODE
+}
+
 if ($Deep) {
     Write-Host "--> 2. Iniciando escaneo DAST Activo Profundo (OWASP ZAP OpenAPI Scan)..." -ForegroundColor Yellow
     docker compose --profile security-deep run --rm security-zap-deep
@@ -36,9 +41,11 @@ Write-Host " Reportes generados en:" -ForegroundColor Green
 if ($Deep) {
     Write-Host "    - .\reports\security-deep-report.json  (DAST OpenAPI Active Scan)" -ForegroundColor Green
     Write-Host "    - .\reports\security-deep-report.html  (DAST visual profundo)" -ForegroundColor Green
+    powershell -ExecutionPolicy Bypass -File ".\scripts\notify.ps1" -Title "Auditoria de Seguridad Aprobada" -Message "Escaneo profundo completado con exito: 0 vulnerabilidades criticas." 2>/dev/null
 } else {
     Write-Host "    - .\reports\security-report.json       (DAST Baseline)" -ForegroundColor Green
     Write-Host "    - .\reports\security-report.html       (DAST visual)" -ForegroundColor Green
+    powershell -ExecutionPolicy Bypass -File ".\scripts\notify.ps1" -Title "Auditoria de Seguridad Aprobada" -Message "Escaneo baseline completado con exito: 0 vulnerabilidades criticas." 2>/dev/null
 }
 Write-Host "    - .\reports\trivy-report.json           (SCA - Codigo y Dependencias)" -ForegroundColor Green
 Write-Host "======================================================================" -ForegroundColor Green

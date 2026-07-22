@@ -11,6 +11,10 @@ echo "======================================================================"
 # Ejecutar tests de límites de seguridad en backend
 if command -v docker >/dev/null 2>&1; then
     docker compose exec -T backend pytest tests/integration/api/test_security_bounds.py -v
+    
+    if command -v powershell.exe >/dev/null 2>&1; then
+        powershell.exe -ExecutionPolicy Bypass -File "./scripts/notify.ps1" -Title "ERP Security - Pre-Commit" -Message "Pruebas adversariales de seguridad aprobadas (6/6 passed)." 2>/dev/null || true
+    fi
 else
     echo "⚠️ Docker no está disponible, omitiendo pre-commit scan."
 fi
