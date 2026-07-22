@@ -1,6 +1,7 @@
 # RBAC Model
 
-> Status: **Phase 2 (planned)**. This document is the design contract.
+> **Versión:** `v1.0.0` | **Última actualización:** `22/07/2026`  
+> Dynamic Role-Based Access Control model and permission matrix design.
 
 ## 1. Goals
 

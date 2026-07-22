@@ -1,5 +1,6 @@
 # Guía de Diseño UX/UI — Design System Geist (Vercel)
 
+> **Versión:** `v1.0.0` | **Última actualización:** `22/07/2026`  
 > Esta guía es la referencia obligatoria para todo diseño visual y de interacción
 > en el ERP System. Se basa en el design system **Geist** de Vercel, adaptado al
 > contexto de un panel empresarial. Síguela para mantener consistencia visual en

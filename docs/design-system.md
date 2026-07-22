@@ -1,8 +1,7 @@
 # Design System
 
-> Status: **Phase 0 (minimal tokens)**. The full design system is documented
-> here as the contract Phase 5 will implement. Tokens are already live in
-> `src/app.css` and `tailwind.config.js`.
+> **Versión:** `v1.0.0` | **Última actualización:** `22/07/2026`  
+> Visual tokens, Geist theme variables, typography and component guidelines.
 
 ## 1. Identity
 

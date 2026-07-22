@@ -1,8 +1,7 @@
 # Database Schema
 
-> Status: **Phase 0**. Only the foundation (`app_meta`) exists today. Real
-> entities arrive in Phases 1–4. The full target schema is documented below
-> as the design contract the later phases will implement verbatim.
+> **Versión:** `v1.0.0` | **Última actualización:** `22/07/2026`  
+> Complete schema design and conventions for PostgreSQL 16.
 
 ## 1. Conventions
 

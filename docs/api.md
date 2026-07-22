@@ -1,7 +1,7 @@
 # API Reference
 
-> Status: **Phase 6 (final)**. Interactive docs at `/docs` (Swagger) and
-> `/redoc` when running in non-production mode.
+> **Versión:** `v1.0.0` | **Última actualización:** `22/07/2026`  
+> Interactive docs at `/docs` (Swagger) and `/redoc` when running in non-production mode.
 
 ## 1. Base URL
 

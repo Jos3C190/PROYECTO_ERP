@@ -1,7 +1,7 @@
 # Architecture
 
-> Status: **Phase 0 (Cimientos)**. This document grows each phase. Sections
-> marked *(planned)* describe the design that subsequent phases will implement.
+> **Versión:** `v1.0.0` | **Última actualización:** `22/07/2026`  
+> Architecture and design contracts for the modular ERP monorepo.
 
 ## 1. Overview
 
