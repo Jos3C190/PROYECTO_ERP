@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.72.0"
   },
-  "ReportID": "019f8b6a-1acd-7ca4-aea1-e04dbe75be69",
-  "CreatedAt": "2026-07-22T20:00:14.541831738Z",
-  "ArtifactID": "sha256:59bedb7aae5de52aae4a5e56ebac20e9ce7b3b6a64139eba96cd340fd6dd8c2c",
+  "ReportID": "019f8b7f-83d8-7bf3-89cb-c350ea038c31",
+  "CreatedAt": "2026-07-22T20:23:37.688786073Z",
+  "ArtifactID": "sha256:ca708c8311724ea6ba656a7bb4be9b306c7967e5ada03f27ed0b4c2efeb7711d",
   "ArtifactName": "/src",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/Jos3C190/PROYECTO_ERP.git",
     "Branch": "develop",
-    "Commit": "81c4630a118aca829bbfe0f6990af1ea4076cf78",
-    "CommitMsg": "docs: add comprehensive project documentation covering architecture, API, security, testing, and UI/UX design guides.",
+    "Commit": "64cb29a06626bb531c755340c37f398c102f8fee",
+    "CommitMsg": "feat: implement git pre-commit hook and automated security auditing scripts with desktop notifications",
     "Author": "Jos3C190 \u003cjosecarloslopezm17@gmail.com\u003e",
     "Committer": "Jos3C190 \u003cjosecarloslopezm17@gmail.com\u003e"
   },
@@ -1326,7 +1326,7 @@
             "Name": "GitHub Security Advisory pip",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Apip"
           },
-          "Fingerprint": "sha256:dc524790ad833abdeaa53d271dec7d7125c599a92b2082a01861be7c01674ba3",
+          "Fingerprint": "sha256:41985ce8aeff43cd7ce53e517ca6b6ae3b4bbc692152442290aed7196d8dc66b",
           "Title": "pytest: pytest: Denial of Service or Privilege Escalation via insecure temporary directory handling",
           "Description": "pytest through 9.0.2 on UNIX relies on directories with the /tmp/pytest-of-{user} name pattern, which allows local users to cause a denial of service or possibly gain privileges.",
           "Severity": "MEDIUM",
@@ -1383,7 +1383,7 @@
             "Name": "GitHub Security Advisory pip",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Apip"
           },
-          "Fingerprint": "sha256:c0d80074af06c788979ccbf28510351d6b5cd97ff68e3e76d1ea58f3f9b2993c",
+          "Fingerprint": "sha256:8d054504d49f2beb91411613126fb683eef54cba7ed0a621db9ae07557959a08",
           "Title": "starlette: Starlette DoS via Range header merging",
           "Description": "Starlette is a lightweight ASGI framework/toolkit. Starting in version 0.39.0 and prior to version 0.49.1 , an unauthenticated attacker can send a crafted HTTP Range header that triggers quadratic-time processing in Starlette's FileResponse Range parsing/merging logic. This enables CPU exhaustion per request, causing denial‑of‑service for endpoints serving files (e.g., StaticFiles or any use of FileResponse). This vulnerability is fixed in 0.49.1.",
           "Severity": "HIGH",
@@ -1438,7 +1438,7 @@
             "Name": "GitHub Security Advisory pip",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Apip"
           },
-          "Fingerprint": "sha256:d3adecfa85c3a8c57f190a6ecca9f36895f256c31203cd3e1a17ce558792b02f",
+          "Fingerprint": "sha256:a31e1664469b66010267a9edbd2ea63e5d4f7b4796a0af431387058c01faf2f6",
           "Title": "starlette: Starlette: SSRF and NTLM credential theft via UNC paths in StaticFiles on Windows",
           "Description": "Starlette is a lightweight ASGI framework/toolkit. In versions 1.0.1 and earlier, StaticFiles on Windows is vulnerable to SSRF. An UNC path such as \\\\attacker.com\\share can cause os.path.realpath to initiate an outbound SMB connection before the path is rejected, exposing the service account’s NTLMv2 credentials for offline cracking or relay even though the HTTP response is only a 404. The issue affects default follow_symlink=False deployments, including frameworks built on Starlette such as FastAPI; POSIX systems and follow_symlink=True are unaffected. The issue is fixed in 1.1.0.",
           "Severity": "HIGH",
@@ -1498,7 +1498,7 @@
             "Name": "GitHub Security Advisory pip",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Apip"
           },
-          "Fingerprint": "sha256:15f9184c337d03d913eeb202b8d3b4f2a1fc0dee16a644374df4554b7a834e51",
+          "Fingerprint": "sha256:1b4ca2084686518b516398faf0c36a80d368fa257f0f0f5875c44c99163da86e",
           "Title": "starlette: Starlette: request.form() limits silently ignored for application/x-www-form-urlencoded enable DoS",
           "Description": "Starlette is a lightweight ASGI framework/toolkit. From 0.4.1 until 1.3.1, request.form() accepts max_fields and max_part_size to bound resource consumption while parsing form data. These limits are enforced for multipart/form-data, but silently ignored for application/x-www-form-urlencoded. An unauthenticated attacker can therefore send a urlencoded body with an arbitrarily large number of fields or an arbitrarily large field, even when the application configured limits it believed would apply. This vulnerability is fixed in 1.3.1.",
           "Severity": "HIGH",
@@ -1550,7 +1550,7 @@
             "Name": "GitHub Security Advisory pip",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Apip"
           },
-          "Fingerprint": "sha256:f80de568b5d13764b65a280c947eee9df9f794689617301e29b789c9dea7109c",
+          "Fingerprint": "sha256:bf3f27bc6c35d4dfd8efb07bb30cc7ee99dda330f029c4e317f77b7e49f12cd9",
           "Title": "starlette: Starlette: Security restriction bypass via malformed HTTP Host header",
           "Description": "Starlette is a lightweight ASGI framework/toolkit. Prior to version 1.0.1, the HTTP `Host` request header was not validated before being used to reconstruct `request.url`. Because the routing algorithm relies on the raw HTTP path while `request.url` is rebuilt from the `Host` header, a malformed header could make `request.url.path` differ from the path that was actually requested. Middleware and endpoints that apply security restrictions based on `request.url` (rather than the raw `scope` path) could therefore be bypassed. Users should upgrade to a version greater than or equal to version 1.0.1, which validates the `Host` header against the grammar of RFC 9112 §3.2 / RFC 3986 §3.2.2 when constructing `request.url` and falls back to `scope[\"server\"]` for malformed values.",
           "Severity": "MEDIUM",
@@ -1628,7 +1628,7 @@
             "Name": "GitHub Security Advisory pip",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Apip"
           },
-          "Fingerprint": "sha256:fda43d998a1e82a29d467fae1c6ab82ea71999c5ee2f77796ffb33267697bf13",
+          "Fingerprint": "sha256:e24a9411dac8aff8eb13185fb5e2041847bcd032c378633b781ebcde4af52ebd",
           "Title": "starlette: Starlette: Information disclosure and unintended method execution via non-standard HTTP methods",
           "Description": "Starlette is a lightweight ASGI framework/toolkit. In versions 1.0.1 and below, when dispatching a request, HTTPEndpoint selects the handler by lowercasing the HTTP method and looking it up as an attribute with getattr, without restricting the lookup to a known set of HTTP verbs. When an HTTPEndpoint subclass is registered through Route(...) without an explicit methods= argument, the route does not constrain the method and every method reaches the endpoint. If a non-standard HTTP method whose lowercased name matches an attribute on the endpoint subclass reaches the endpoint, that attribute is invoked as if it were a request handler. An attacker can use this to reach methods that were never meant to be HTTP handlers, such as internal helpers, without the authorization checks applied by the intended public handler. An application (including Starlette-based frameworks like FastAPI) is affected if it registers an HTTPEndpoint subclass via Route(...) without explicitly setting methods=, and that subclass includes extra methods named like non-standard HTTP verbs that take one request argument and return a response. This issue has been fixed in version 1.1.0.",
           "Severity": "MEDIUM",
@@ -1681,7 +1681,7 @@
             "Name": "GitHub Security Advisory pip",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Apip"
           },
-          "Fingerprint": "sha256:b3efbe1e148f1d2217fcfced9628cce91de2996756638ef66799d281cf439af0",
+          "Fingerprint": "sha256:3e4e347f120b03f3e06557ab5d4c7d086260035578000154ecd0fe90cabd4383",
           "Title": "starlette: Starlette: Information disclosure due to improper HTTP request path validation",
           "Description": "Starlette is a lightweight ASGI framework/toolkit. Prior to 1.3.0, the HTTP request path is not validated before being used to reconstruct request.url. Because request.url is rebuilt by concatenating {scheme}://{host}{path} and re-parsing the result, a path that does not begin with / (for example @google.com) moves the authority boundary during re-parsing, so request.url.hostname and request.url.netloc become attacker-controlled. Code that reads request.url.hostname (rather than the Host header or scope) can therefore be misled into trusting an attacker-supplied host. This vulnerability is fixed in 1.3.0.",
           "Severity": "LOW",
@@ -1730,13 +1730,13 @@
           "Name": "@tanstack/svelte-query",
           "Identifier": {
             "PURL": "pkg:npm/%40tanstack/svelte-query@5.90.2",
-            "UID": "c203e2c1f6d74b2a"
+            "UID": "209749c7c7dcc95a"
           },
           "Version": "5.90.2",
           "Relationship": "direct",
           "DependsOn": [
-            "@tanstack/query-core@5.90.2",
-            "svelte@5.56.7(@typescript-eslint/types@8.65.0)"
+            "svelte@5.56.7(@typescript-eslint/types@8.65.0)",
+            "@tanstack/query-core@5.90.2"
           ],
           "AnalyzedBy": "pnpm"
         },
@@ -1745,27 +1745,27 @@
           "Name": "svelte",
           "Identifier": {
             "PURL": "pkg:npm/svelte@5.56.7",
-            "UID": "a49c8c1201054e80"
+            "UID": "abfab000663599ce"
           },
           "Version": "5.56.7",
           "Relationship": "direct",
           "DependsOn": [
+            "esrap@2.3.0(@typescript-eslint/types@8.65.0)",
             "aria-query@5.3.1",
-            "devalue@5.8.2",
-            "@sveltejs/acorn-typescript@1.0.11(acorn@8.17.0)",
             "locate-character@3.0.0",
+            "axobject-query@4.1.0",
             "@jridgewell/sourcemap-codec@1.5.5",
-            "is-reference@3.0.3",
-            "clsx@2.1.1",
             "@types/estree@1.0.9",
             "esm-env@1.2.2",
-            "zimmerframe@1.1.4",
             "@jridgewell/remapping@2.3.5",
+            "magic-string@0.30.21",
+            "zimmerframe@1.1.4",
+            "devalue@5.8.2",
             "@types/trusted-types@2.0.7",
-            "axobject-query@4.1.0",
+            "@sveltejs/acorn-typescript@1.0.11(acorn@8.17.0)",
             "acorn@8.17.0",
-            "esrap@2.3.0(@typescript-eslint/types@8.65.0)",
-            "magic-string@0.30.21"
+            "clsx@2.1.1",
+            "is-reference@3.0.3"
           ],
           "AnalyzedBy": "pnpm"
         },
@@ -1785,14 +1785,14 @@
           "Name": "@jridgewell/gen-mapping",
           "Identifier": {
             "PURL": "pkg:npm/%40jridgewell/gen-mapping@0.3.13",
-            "UID": "c1c91970de799792"
+            "UID": "249af2e3f1a62a64"
           },
           "Version": "0.3.13",
           "Indirect": true,
           "Relationship": "indirect",
           "DependsOn": [
-            "@jridgewell/trace-mapping@0.3.31",
-            "@jridgewell/sourcemap-codec@1.5.5"
+            "@jridgewell/sourcemap-codec@1.5.5",
+            "@jridgewell/trace-mapping@0.3.31"
           ],
           "AnalyzedBy": "pnpm"
         },
@@ -1992,14 +1992,14 @@
           "Name": "esrap",
           "Identifier": {
             "PURL": "pkg:npm/esrap@2.3.0",
-            "UID": "d86af618e6af4ecf"
+            "UID": "1d3543721a048f87"
           },
           "Version": "2.3.0",
           "Indirect": true,
           "Relationship": "indirect",
           "DependsOn": [
-            "@typescript-eslint/types@8.65.0",
-            "@jridgewell/sourcemap-codec@1.5.5"
+            "@jridgewell/sourcemap-codec@1.5.5",
+            "@typescript-eslint/types@8.65.0"
           ],
           "AnalyzedBy": "pnpm"
         },
